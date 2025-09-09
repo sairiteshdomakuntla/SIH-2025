@@ -1,28 +1,29 @@
-// server.js
 const express = require("express");
-const mongoose = require("mongoose");
 const dotenv = require("dotenv");
+const cors = require("cors");
+const connectDB = require("./config/db");
+const authRoutes = require("./routes/authRoutes");
 
 // Load environment variables
 dotenv.config();
 
+// Initialize app
 const app = express();
 const PORT = process.env.PORT || 5000;
-const MONGO_URI = process.env.MONGO_URI;
+
+// Connect DB
+connectDB();
 
 // Middleware
 app.use(express.json());
-
-// MongoDB connection
-mongoose
-  .connect(MONGO_URI)
-  .then(() => console.log("✅ MongoDB Connected"))
-  .catch((err) => console.error("❌ MongoDB Connection Error:", err));
+app.use(cors());
 
 // Routes
 app.get("/", (req, res) => {
-  res.send("Hello World with MongoDB + dotenv 🚀");
+  res.send("Rural Learning Platform API 🚀");
 });
+
+app.use("/api/auth", authRoutes);
 
 // Start server
 app.listen(PORT, () => {
