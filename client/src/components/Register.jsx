@@ -111,7 +111,7 @@ const Register = () => {
       </div>
 
       {/* Glass morphism container */}
-      <div className="backdrop-blur-xl bg-black/40 border border-purple-500/30 rounded-3xl m-10 p-7 shadow-2xl relative overflow-hidden w-full max-w-2xl max-h-[85vh] overflow-y-auto">
+      <div className="backdrop-blur-xl bg-black/40 border border-purple-500/30 rounded-3xl m-10 p-7 shadow-2xl relative overflow-hidden w-full max-w-2xl">
           
           {/* Top gaming badge */}
           <div className="relative z-10 flex justify-center mb-6">

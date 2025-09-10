@@ -58,7 +58,7 @@ const Login = () => {
       </div>
 
       {/* Glass morphism container */}
-      <div className="backdrop-blur-xl bg-black/40 border border-purple-500/30 rounded-3xl p-8 m-35 shadow-2xl relative overflow-hidden w-full max-w-md max-h-[80vh] overflow-y-auto">
+      <div className="backdrop-blur-xl bg-black/40 border border-purple-500/30 rounded-3xl p-8 m-35 shadow-2xl relative overflow-hidden w-full max-w-md">
           
           {/* Top gaming badge */}
           <div className="relative z-10 flex justify-center mb-6">
