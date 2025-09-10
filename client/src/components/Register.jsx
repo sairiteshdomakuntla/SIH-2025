@@ -11,9 +11,12 @@ import {
   BookOpen,
   Sparkles,
   Star,
-  BadgeCheck
+  BadgeCheck,
+  Gamepad2,
+  Trophy,
+  Shield,
+  Zap
 } from 'lucide-react';
-import '../assets/theme.css';
 
 const Register = () => {
   const [formData, setFormData] = useState({
@@ -33,7 +36,7 @@ const Register = () => {
   const navigate = useNavigate();
 
   const grades = ['5th Grade', '6th Grade', '7th Grade', '8th Grade', '9th Grade', '10th Grade'];
-  const subjects = ['Math', 'Science', 'English', 'Hindi', 'Social Studies', 'Arts'];
+  const subjects = ['Math', 'Science', 'English', 'Hindi', 'Social Studies'];
 
   const handleChange = (e) => {
     setFormData({
@@ -79,7 +82,7 @@ const Register = () => {
     });
 
     if (result.success) {
-      navigate('/dashboard');
+      navigate('/login');
     }
     setIsLoading(false);
   };
@@ -88,225 +91,252 @@ const Register = () => {
   const xpPercent = 10;
 
   return (
-    <div className="gamify-fadein" style={{ minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'var(--panel-bg)', paddingTop: '5.5rem' }}>
-      <div className="gamify-card" style={{ width: '100%', maxWidth:580, position: 'relative' }}>
-        {/* Top Icon */}
-       
-
-        {/* Gamified XP Bar */}
-        <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', marginBottom: 24 }}>
-          <span style={{
-            fontWeight: 700,
-            color: 'var(--neon-pink)',
-            fontFamily: "'Orbitron', 'Audiowide', sans-serif",
-            fontSize: '1.18rem',
-            textAlign: 'center',
-            letterSpacing: '0.04em',
-            textShadow: '0 0 6px var(--neon-pink)'
-          }}>
-            <span style={{display:'flex'}}><BadgeCheck style={{marginRight:9}} />
-            New Player
-            </span>
-          </span>
-        </div>
-
-        <div className="gamify-title">
-          Create Your Learning Character!
-        </div>
-        <div className="gamify-subtitle">
-          Begin your epic educational journey
-        </div>
-        <div className="gamify-tip" style={{ textAlign: 'center', marginBottom: 16 }}>
-          <span role="img" aria-label="tip">💡</span> Tip: The more interests you select, the more XP you can earn!
-        </div>
-        {error && (
-          <div className="gamify-error flex items-center space-x-2">
-            <Sparkles className="gamify-icon" />
-            <span>{error}</span>
+    <div className="w-full h-full flex items-center justify-center p-4 relative">
+      {/* Animated particles */}
+      <div className="absolute inset-0 overflow-hidden pointer-events-none">
+        {[...Array(20)].map((_, i) => (
+          <div
+            key={i}
+            className="absolute animate-pulse"
+            style={{
+              left: `${Math.random() * 100}%`,
+              top: `${Math.random() * 100}%`,
+              animationDelay: `${Math.random() * 3}s`,
+              animationDuration: `${2 + Math.random() * 2}s`
+            }}
+          >
+            <Star className="w-2 h-2 text-pink-400 opacity-60" />
           </div>
-        )}
+        ))}
+      </div>
 
-        <form onSubmit={handleSubmit}>
-          <div className="gamify-input-group">
-            <label className="gamify-label" htmlFor="name" style={{ display: 'flex', alignItems: 'center', gap: '0.7rem', marginBottom: '0.5rem' }}>
-              <User className="gamify-icon" style={{ marginBottom: 0 }} />
-              Full Name
-            </label>
-            <input
-              type="text"
-              name="name"
-              id="name"
-              value={formData.name}
-              onChange={handleChange}
-              className="gamify-input"
-              placeholder="Enter your name"
-              required
-              style={{ marginTop: '0.2rem' }}
-            />
-          </div>
-          <div className="gamify-input-group">
-            <label className="gamify-label" htmlFor="email" style={{ display: 'flex', alignItems: 'center', gap: '0.7rem', marginBottom: '0.5rem' }}>
-              <Mail className="gamify-icon" style={{ marginBottom: 0 }} />
-              Email Address
-            </label>
-            <input
-              type="email"
-              name="email"
-              id="email"
-              value={formData.email}
-              onChange={handleChange}
-              className="gamify-input"
-              placeholder="Enter your email"
-              required
-              style={{ marginTop: '0.2rem' }}
-            />
-          </div>
-          <div className="gamify-input-group">
-            <label className="gamify-label" htmlFor="password" style={{ display: 'flex', alignItems: 'center', gap: '0.7rem', marginBottom: '0.5rem' }}>
-              <Lock className="gamify-icon" style={{ marginBottom: 0 }} />
-              Password
-            </label>
-            <div style={{ position: 'relative' }}>
-              <input
-                type={showPassword ? 'text' : 'password'}
-                name="password"
-                id="password"
-                value={formData.password}
-                onChange={handleChange}
-                className="gamify-input"
-                placeholder="Create a password"
-                required
-                style={{ paddingRight: 40, marginTop: '0.2rem' }}
-              />
-              <button
-                type="button"
-                onClick={() => setShowPassword(!showPassword)}
-                style={{
-                  position: 'absolute',
-                  right: 10,
-                  top: '50%',
-                  transform: 'translateY(-50%)',
-                  background: 'none',
-                  border: 'none',
-                  cursor: 'pointer'
-                }}
-                tabIndex={-1}
-              >
-                {showPassword ? (
-                  <EyeOff className="gamify-icon" />
-                ) : (
-                  <Eye className="gamify-icon" />
-                )}
-              </button>
+      {/* Glass morphism container */}
+      <div className="backdrop-blur-xl bg-black/40 border border-purple-500/30 rounded-3xl m-10 p-7 shadow-2xl relative overflow-hidden w-full max-w-2xl max-h-[85vh] overflow-y-auto">
+          
+          {/* Top gaming badge */}
+          <div className="relative z-10 flex justify-center mb-6">
+            <div className="bg-gradient-to-r from-purple-600 to-pink-600 p-4 rounded-full shadow-lg transform hover:scale-110 transition-transform duration-300">
+              <Gamepad2 className="w-8 h-8 text-white" />
             </div>
           </div>
-          <div className="gamify-input-group">
-            <label className="gamify-label" htmlFor="confirmPassword" style={{ display: 'flex', alignItems: 'center', gap: '0.7rem', marginBottom: '0.5rem' }}>
-              <Lock className="gamify-icon" style={{ marginBottom: 0 }} />
-              Confirm Password
-            </label>
-            <div style={{ position: 'relative' }}>
-              <input
-                type={showConfirmPassword ? 'text' : 'password'}
-                name="confirmPassword"
-                id="confirmPassword"
-                value={formData.confirmPassword}
-                onChange={handleChange}
-                className="gamify-input"
-                placeholder="Confirm your password"
-                required
-                style={{ paddingRight: 40, marginTop: '0.2rem' }}
-              />
-              <button
-                type="button"
-                onClick={() => setShowConfirmPassword(!showConfirmPassword)}
-                style={{
-                  position: 'absolute',
-                  right: 10,
-                  top: '50%',
-                  transform: 'translateY(-50%)',
-                  background: 'none',
-                  border: 'none',
-                  cursor: 'pointer'
-                }}
-                tabIndex={-1}
-              >
-                {showConfirmPassword ? (
-                  <EyeOff className="gamify-icon" />
-                ) : (
-                  <Eye className="gamify-icon" />
-                )}
-              </button>
+
+          {/* Title Section */}
+          <div className="relative z-10 text-center mb-6">
+            <h2 className="text-4xl font-bold bg-gradient-to-r from-white to-purple-200 bg-clip-text text-transparent mb-3">
+              Create Your Character!
+            </h2>
+            {/* Achievement badges */}
+            <div className="flex justify-center space-x-4 mt-4">
+              <div className="bg-yellow-500/20 border border-yellow-500/40 rounded-full p-3">
+                <BadgeCheck className="w-6 h-6 text-yellow-400" />
+              </div>
+              <div className="bg-blue-500/20 border border-blue-500/40 rounded-full p-3">
+                <Shield className="w-6 h-6 text-blue-400" />
+              </div>
+              <div className="bg-green-500/20 border border-green-500/40 rounded-full p-3">
+                <Zap className="w-6 h-6 text-green-400" />
+              </div>
             </div>
           </div>
-          <div className="gamify-input-group">
-            <label className="gamify-label" htmlFor="location" style={{ display: 'flex', alignItems: 'center', gap: '0.7rem', marginBottom: '0.5rem' }}>
-              <MapPin className="gamify-icon" style={{ marginBottom: 0 }} />
-              Location
-            </label>
-            <input
-              type="text"
-              name="location"
-              id="location"
-              value={formData.location}
-              onChange={handleChange}
-              className="gamify-input"
-              placeholder="Your village/city"
-              required
-              style={{ marginTop: '0.2rem' }}
-            />
-          </div>
-          <div className="gamify-input-group">
-            <label className="gamify-label" htmlFor="grade" style={{ display: 'flex', alignItems: 'center', gap: '0.7rem', marginBottom: '0.5rem' }}>
-              <BookOpen className="gamify-icon" style={{ marginBottom: 0 }} />
-              Grade Level
-            </label>
-            <select
-              name="grade"
-              id="grade"
-              value={formData.grade}
-              onChange={handleChange}
-              className="gamify-input"
-              required
-              style={{ marginTop: '0.2rem' }}
-            >
-              <option value="">Select your grade</option>
-              {grades.map(grade => (
-                <option key={grade} value={grade}>{grade}</option>
-              ))}
-            </select>
+
+          {/* Error Display */}
+          {error && (
+            <div className="relative z-10 mb-6 p-4 bg-red-500/20 border border-red-500/40 rounded-xl backdrop-blur-sm">
+              <div className="flex items-center space-x-3">
+                <div className="bg-red-500 p-1 rounded-full">
+                  <Sparkles className="w-4 h-4 text-white" />
+                </div>
+                <span className="text-red-200 font-medium text-sm">{error}</span>
+              </div>
+            </div>
+          )}
+
+          {/* Form */}
+          <form onSubmit={handleSubmit} className="relative z-10 space-y-5">
+            {/* First Row - Name and Email */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+              {/* Name Field */}
+              <div className="space-y-2">
+                <label 
+                  htmlFor="name" 
+                  className="flex items-center space-x-3 text-white/90 font-medium text-base"
+                >
+                  <div className="p-2.5 rounded-lg bg-gray-800/60 border border-gray-600/40">
+                    <User className="w-5 h-5" />
+                  </div>
+                  <span>Character Name</span>
+                </label>
+                <input
+                  type="text"
+                  name="name"
+                  id="name"
+                  value={formData.name}
+                  onChange={handleChange}
+                  className="w-full bg-gray-900/70 border border-gray-600/60 rounded-xl px-4 py-4 text-white text-base placeholder-gray-300 focus:outline-none focus:border-purple-400/80 focus:bg-gray-800/80 transition-all duration-300 backdrop-blur-sm"
+                  placeholder="Enter your name"
+                  required
+                />
+              </div>
+
+              {/* Email Field */}
+              <div className="space-y-2">
+                <label 
+                  htmlFor="email" 
+                  className="flex items-center space-x-3 text-white/90 font-medium text-base"
+                >
+                  <div className="p-2.5 rounded-lg bg-gray-800/60 border border-gray-600/40">
+                    <Mail className="w-5 h-5" />
+                  </div>
+                  <span>Player Email</span>
+                </label>
+                <input
+                  type="email"
+                  name="email"
+                  id="email"
+                  value={formData.email}
+                  onChange={handleChange}
+                  className="w-full bg-gray-900/70 border border-gray-600/60 rounded-xl px-4 py-4 text-white text-base placeholder-gray-300 focus:outline-none focus:border-purple-400/80 focus:bg-gray-800/80 transition-all duration-300 backdrop-blur-sm"
+                  placeholder="Enter your email"
+                  required
+                />
+              </div>
+            </div>
+
+            {/* Second Row - Password Fields */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              {/* Password Field */}
+              <div className="space-y-3">
+                <label 
+                  htmlFor="password" 
+                  className="flex items-center space-x-3 text-white/90 font-medium text-base"
+                >
+                  <div className="p-2.5 rounded-lg bg-gray-800/60 border border-gray-600/40">
+                    <Lock className="w-5 h-5" />
+                  </div>
+                  <span>Secret Code</span>
+                </label>
+                <div className="relative">
+                  <input
+                    type={showPassword ? 'text' : 'password'}
+                    name="password"
+                    id="password"
+                    value={formData.password}
+                    onChange={handleChange}
+                    className="w-full bg-gray-900/70 border border-gray-600/60 rounded-xl px-4 py-4 pr-12 text-white text-base placeholder-gray-300 focus:outline-none focus:border-purple-400/80 focus:bg-gray-800/80 transition-all duration-300 backdrop-blur-sm"
+                    placeholder="Create a password"
+                    required
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setShowPassword(!showPassword)}
+                    className="absolute right-4 top-1/2 transform -translate-y-1/2 text-white/60 hover:text-white transition-colors duration-200"
+                  >
+                    {showPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
+                  </button>
+                </div>
+              </div>
+
+              {/* Confirm Password Field */}
+              <div className="space-y-3">
+                <label 
+                  htmlFor="confirmPassword" 
+                  className="flex items-center space-x-3 text-white/90 font-medium text-base"
+                >
+                  <div className="p-2.5 rounded-lg bg-gray-800/60 border border-gray-600/40">
+                    <Lock className="w-5 h-5" />
+                  </div>
+                  <span>Confirm Code</span>
+                </label>
+                <div className="relative">
+                  <input
+                    type={showConfirmPassword ? 'text' : 'password'}
+                    name="confirmPassword"
+                    id="confirmPassword"
+                    value={formData.confirmPassword}
+                    onChange={handleChange}
+                    className="w-full bg-gray-900/70 border border-gray-600/60 rounded-xl px-4 py-4 pr-12 text-white text-base placeholder-gray-300 focus:outline-none focus:border-purple-400/80 focus:bg-gray-800/80 transition-all duration-300 backdrop-blur-sm"
+                    placeholder="Confirm your password"
+                    required
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                    className="absolute right-4 top-1/2 transform -translate-y-1/2 text-white/60 hover:text-white transition-colors duration-200"
+                  >
+                    {showConfirmPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
+                  </button>
+                </div>
+              </div>
+            </div>
+
+            {/* Third Row - Location and Grade */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              {/* Location Field */}
+              <div className="space-y-3">
+                <label 
+                  htmlFor="location" 
+                  className="flex items-center space-x-3 text-white/90 font-medium text-base"
+                >
+                  <div className="p-2.5 rounded-lg bg-gray-800/60 border border-gray-600/40">
+                    <MapPin className="w-5 h-5" />
+                  </div>
+                  <span>Home Base</span>
+                </label>
+                <input
+                  type="text"
+                  name="location"
+                  id="location"
+                  value={formData.location}
+                  onChange={handleChange}
+                  className="w-full bg-gray-900/70 border border-gray-600/60 rounded-xl px-4 py-4 text-white text-base placeholder-gray-300 focus:outline-none focus:border-purple-400/80 focus:bg-gray-800/80 transition-all duration-300 backdrop-blur-sm"
+                  placeholder="Your village/city"
+                  required
+                />
+              </div>
+
+              {/* Grade Field */}
+              <div className="space-y-3">
+                <label 
+                  htmlFor="grade" 
+                  className="flex items-center space-x-3 text-white/90 font-medium text-base"
+                >
+                  <div className="p-2.5 rounded-lg bg-gray-800/60 border border-gray-600/40">
+                    <BookOpen className="w-5 h-5" />
+                  </div>
+                  <span>Level</span>
+                </label>
+                <select
+                  name="grade"
+                  id="grade"
+                  value={formData.grade}
+                  onChange={handleChange}
+                  className="w-full bg-gray-900/70 border border-gray-600/60 rounded-xl px-4 py-4 text-white text-base focus:outline-none focus:border-purple-400/80 focus:bg-gray-800/80 transition-all duration-300 backdrop-blur-sm"
+                  required
+                >
+                <option value="">Select your grade</option>
+                {grades.map(grade => (
+                  <option key={grade} value={grade} className="bg-gray-800">{grade}</option>
+                ))}
+              </select>
+            </div>
           </div>
 
-          <div className="gamify-input-group">
-            <label className="gamify-label">
-              Choose Your Learning Interests
+          {/* Interests Section */}
+          <div className="space-y-4">
+            <label className="text-white/90 font-medium text-base text-center block">
+              Choose Your Learning Skills
             </label>
-            <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.5rem' }}>
+            <div className="flex flex-wrap justify-center gap-3">
               {subjects.map(subject => (
                 <button
                   key={subject}
                   type="button"
                   onClick={() => handleInterestToggle(subject)}
-                  style={{
-                    padding: '0.6rem 1.2rem',
-                    borderRadius: '0.8rem',
-                    border: formData.interests.includes(subject)
-                      ? '2px solid var(--neon-pink)'
-                      : '2px solid var(--neon-purple)',
-                    background: formData.interests.includes(subject)
-                      ? 'rgba(255,0,204,0.12)'
-                      : 'rgba(0,234,255,0.08)',
-                    color: formData.interests.includes(subject)
-                      ? 'var(--neon-pink)'
-                      : '#fff',
-                    fontWeight: 600,
-                    fontFamily: 'Orbitron, Audiowide, sans-serif',
-                    cursor: 'pointer',
-                    boxShadow: formData.interests.includes(subject)
-                      ? '0 0 8px var(--neon-pink)'
-                      : '0 0 4px var(--neon-blue)',
-                    transition: 'all 0.2s'
-                  }}
+                  className={`px-4 py-2.5 rounded-xl border-2 font-medium text-base transition-all duration-300 ${
+                    formData.interests.includes(subject)
+                      ? 'bg-purple-600/30 border-purple-400/80 text-purple-200 shadow-lg shadow-purple-500/20'
+                      : 'bg-gray-800/50 border-gray-600/50 text-gray-300 hover:border-purple-500/50'
+                  }`}
                 >
                   {subject}
                 </button>
@@ -314,34 +344,67 @@ const Register = () => {
             </div>
           </div>
 
+          {/* Progress Bar */}
+          <div className="bg-white/10 rounded-full h-3 overflow-hidden">
+            <div 
+              className="h-full bg-gradient-to-r from-purple-500 to-pink-500 rounded-full transition-all duration-500 relative"
+              style={{ 
+                width: `${
+                  formData.name && formData.email && formData.password && formData.confirmPassword && formData.location && formData.grade
+                    ? '100' 
+                    : Object.values(formData).filter(v => Array.isArray(v) ? v.length > 0 : v).length * 15
+                }%` 
+              }}
+            >
+              <div className="absolute inset-0 bg-white/20 animate-pulse"></div>
+            </div>
+          </div>
+
+          {/* Submit Button */}
           <button
             type="submit"
             disabled={isLoading}
-            className="gamify-btn"
-            style={{ marginTop: 24, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '1rem' }}
+            className="w-full bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 disabled:from-gray-600 disabled:to-gray-700 text-white font-bold py-5 px-8 rounded-2xl transition-all duration-300 transform hover:scale-105 disabled:scale-100 shadow-lg hover:shadow-xl relative overflow-hidden group text-lg"
           >
-            {isLoading ? (
-              <span>Creating Character...</span>
-            ) : (
-              <>
-                <span style={{ display: 'flex', alignItems: 'center', height: '100%' }}>
-                  <Sparkles className="gamify-icon" style={{ marginRight: 6, marginLeft: 4, verticalAlign: 'middle' }} />
-                </span>
-                <span style={{ flex: 1, textAlign: 'center' }}>Begin My Quest!</span>
-              </>
-            )}
+            <div className="absolute inset-0 bg-gradient-to-r from-white/0 via-white/20 to-white/0 translate-x-[-100%] group-hover:translate-x-[100%] transition-transform duration-700"></div>
+            <div className="relative flex items-center justify-center space-x-3">
+              {isLoading ? (
+                <>
+                  <div className="animate-spin rounded-full h-6 w-6 border-2 border-white border-t-transparent"></div>
+                  <span>Creating Character...</span>
+                </>
+              ) : (
+                <>
+                  <Sparkles className="w-6 h-6" />
+                  <span>Begin My Quest!</span>
+                  <Trophy className="w-6 h-6" />
+                </>
+              )}
+            </div>
           </button>
         </form>
 
-        <div style={{ marginTop: '1.5rem', textAlign: 'center' }}>
-          <span style={{ color: '#fff' }}>
+        {/* Login Link */}
+        <div className="relative z-10 mt-8 text-center">
+          <p className="text-white/80 text-lg">
             Already have an account?{' '}
-            <Link to="/login" className="gamify-link">
+            <Link 
+              to="/login" 
+              className="text-purple-300 hover:text-purple-200 font-semibold transition-colors duration-200 hover:underline"
+            >
               Continue Your Adventure
             </Link>
-          </span>
+          </p>
         </div>
-      </div>
+
+        {/* Decorative elements */}
+        <div className="absolute top-6 right-6 opacity-30">
+          <Star className="w-6 h-6 text-yellow-400 animate-pulse" />
+        </div>
+        <div className="absolute bottom-6 left-6 opacity-30">
+          <BadgeCheck className="w-6 h-6 text-green-400 animate-bounce" />
+        </div>
+        </div>
     </div>
   );
 };

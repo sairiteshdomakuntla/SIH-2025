@@ -49,6 +49,10 @@ export const AuthProvider = ({ children }) => {
       const { token, user } = response.data;
       localStorage.setItem('token', token);
       setUser(user);
+      
+      // Dispatch custom event to trigger auth state update
+      window.dispatchEvent(new Event('authChange'));
+      
       return { success: true };
     } catch (error) {
       const message = error.response?.data?.message || 'Registration failed';
@@ -64,6 +68,10 @@ export const AuthProvider = ({ children }) => {
       const { token, user } = response.data;
       localStorage.setItem('token', token);
       setUser(user);
+      
+      // Dispatch custom event to trigger auth state update
+      window.dispatchEvent(new Event('authChange'));
+      
       return { success: true };
     } catch (error) {
       const message = error.response?.data?.message || 'Login failed';
@@ -75,6 +83,9 @@ export const AuthProvider = ({ children }) => {
   const logout = () => {
     localStorage.removeItem('token');
     setUser(null);
+    
+    // Dispatch custom event to trigger auth state update
+    window.dispatchEvent(new Event('authChange'));
   };
 
   const value = {
