@@ -1,6 +1,7 @@
 import React from 'react';
 import { useAuth } from '../context/AuthContext';
 import { Trophy, Star, BookOpen, Target, Crown, Zap, Brain } from 'lucide-react';
+import AutoText from './AutoText';
 import { Link } from 'react-router-dom';
 
 const Dashboard = () => {
@@ -14,16 +15,20 @@ const Dashboard = () => {
           <div className="flex items-center justify-between">
             <div>
               <h1 className="text-4xl font-bold mb-2">
-                Welcome back, <span className="text-yellow-300">{user?.name}!</span>
+                <AutoText>Welcome back</AutoText>, <span className="text-yellow-300">{user?.name}!</span>
               </h1>
-              <p className="text-purple-200 text-lg">Ready to continue your learning quest?</p>
+              <p className="text-purple-200 text-lg">
+                <AutoText>Ready to continue your learning quest?</AutoText>
+              </p>
             </div>
             <div className="hidden md:flex items-center space-x-4">
               <div className="text-center">
                 <div className="flex items-center justify-center w-16 h-16 bg-yellow-400 rounded-full mb-2">
                   <Crown className="h-8 w-8 text-purple-700" />
                 </div>
-                <p className="text-sm font-bold">Level {user?.level || 1}</p>
+                <p className="text-sm font-bold">
+                  <AutoText>Level</AutoText> {user?.level || 1}
+                </p>
               </div>
             </div>
           </div>
@@ -37,7 +42,9 @@ const Dashboard = () => {
                 <Star className="h-6 w-6 text-yellow-600" />
               </div>
               <div className="ml-4">
-                <p className="text-sm font-medium text-gray-600">Total XP</p>
+                <p className="text-sm font-medium text-gray-600">
+                  <AutoText>Total XP</AutoText>
+                </p>
                 <p className="text-2xl font-bold text-gray-900">{user?.points || 0}</p>
               </div>
             </div>
@@ -49,7 +56,9 @@ const Dashboard = () => {
                 <Trophy className="h-6 w-6 text-green-600" />
               </div>
               <div className="ml-4">
-                <p className="text-sm font-medium text-gray-600">Achievements</p>
+                <p className="text-sm font-medium text-gray-600">
+                  <AutoText>Achievements</AutoText>
+                </p>
                 <p className="text-2xl font-bold text-gray-900">{user?.achievements || 0}</p>
               </div>
             </div>
@@ -61,7 +70,9 @@ const Dashboard = () => {
                 <BookOpen className="h-6 w-6 text-blue-600" />
               </div>
               <div className="ml-4">
-                <p className="text-sm font-medium text-gray-600">Courses</p>
+                <p className="text-sm font-medium text-gray-600">
+                  <AutoText>Courses</AutoText>
+                </p>
                 <p className="text-2xl font-bold text-gray-900">{user?.completedCourses || 0}</p>
               </div>
             </div>
@@ -73,8 +84,12 @@ const Dashboard = () => {
                 <Target className="h-6 w-6 text-purple-600" />
               </div>
               <div className="ml-4">
-                <p className="text-sm font-medium text-gray-600">Streak</p>
-                <p className="text-2xl font-bold text-gray-900">{user?.streak || 0} days</p>
+                <p className="text-sm font-medium text-gray-600">
+                  <AutoText>Streak</AutoText>
+                </p>
+                <p className="text-2xl font-bold text-gray-900">
+                  {user?.streak || 0} <AutoText tag="span">days</AutoText>
+                </p>
               </div>
             </div>
           </div>
@@ -84,7 +99,9 @@ const Dashboard = () => {
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
           {/* Continue Learning */}
           <div className="lg:col-span-2 bg-white rounded-xl p-6 shadow-lg">
-            <h2 className="text-2xl font-bold text-gray-900 mb-4">Continue Your Quest</h2>
+            <h2 className="text-2xl font-bold text-gray-900 mb-4">
+              <AutoText>Continue Your Quest</AutoText>
+            </h2>
             <div className="space-y-4">
               <div className="flex items-center justify-between p-4 bg-gradient-to-r from-purple-50 to-indigo-50 rounded-lg border border-purple-200">
                 <div className="flex items-center space-x-4">
@@ -92,12 +109,16 @@ const Dashboard = () => {
                     <BookOpen className="h-6 w-6 text-purple-600" />
                   </div>
                   <div>
-                    <h3 className="font-semibold text-gray-900">Mathematics Adventure</h3>
-                    <p className="text-sm text-gray-600">Continue with Chapter 5</p>
+                    <h3 className="font-semibold text-gray-900">
+                      <AutoText>Mathematics Adventure</AutoText>
+                    </h3>
+                    <p className="text-sm text-gray-600">
+                      <AutoText>Continue with Chapter 5</AutoText>
+                    </p>
                   </div>
                 </div>
                 <button className="bg-purple-600 text-white px-4 py-2 rounded-lg hover:bg-purple-700 transition-colors">
-                  Continue
+                  <AutoText>Continue</AutoText>
                 </button>
               </div>
               
@@ -124,13 +145,19 @@ const Dashboard = () => {
 
           {/* Achievements */}
           <div className="bg-white rounded-xl p-6 shadow-lg">
-            <h2 className="text-2xl font-bold text-gray-900 mb-4">Recent Achievements</h2>
+            <h2 className="text-2xl font-bold text-gray-900 mb-4">
+              <AutoText>Recent Achievements</AutoText>
+            </h2>
             <div className="space-y-3">
               <div className="flex items-center space-x-3 p-3 bg-yellow-50 rounded-lg">
                 <Trophy className="h-6 w-6 text-yellow-600" />
                 <div>
-                  <p className="font-semibold text-gray-900">First Quest!</p>
-                  <p className="text-sm text-gray-600">Completed first lesson</p>
+                  <p className="font-semibold text-gray-900">
+                    <AutoText>First Quest!</AutoText>
+                  </p>
+                  <p className="text-sm text-gray-600">
+                    <AutoText>Completed first lesson</AutoText>
+                  </p>
                 </div>
               </div>
             </div>

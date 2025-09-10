@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { Eye, EyeOff, Mail, Lock, Gamepad2, Sparkles, Shield, Zap, Trophy, Star } from 'lucide-react';
+import AutoText from './AutoText';
 
 const Login = () => {
   const [formData, setFormData] = useState({
@@ -69,12 +70,18 @@ const Login = () => {
 
           {/* Title Section */}
           <div className="relative z-10 text-center mb-8">
-            <h1 className="text-3xl font-bold bg-gradient-to-r from-white to-purple-200 bg-clip-text text-transparent mb-2">
-              Welcome Back, Explorer!
-            </h1>
-            <p className="text-white/80 text-lg">
-              Continue your epic journey
-            </p>
+            <AutoText 
+              tag="h1"
+              className="text-3xl font-bold bg-gradient-to-r from-white to-purple-200 bg-clip-text text-transparent mb-2"
+            >
+              Welcome Back, Hero!
+            </AutoText>
+            <AutoText 
+              tag="p"
+              className="text-white/80 text-lg"
+            >
+              Continue your epic learning journey
+            </AutoText>
             {/* Achievement badges */}
             <div className="flex justify-center space-x-2 mt-4">
               <div className="bg-yellow-500/20 border border-yellow-500/40 rounded-full p-2">
@@ -96,7 +103,7 @@ const Login = () => {
                 <div className="bg-red-500 p-1 rounded-full">
                   <Sparkles className="w-4 h-4 text-white" />
                 </div>
-                <span className="text-red-200 font-medium">{error}</span>
+                <AutoText className="text-red-200 font-medium">{error}</AutoText>
               </div>
             </div>
           )}
@@ -116,7 +123,7 @@ const Login = () => {
                 }`}>
                   <Mail className="w-4 h-4" />
                 </div>
-                <span>Player Email</span>
+                <AutoText>Email Address</AutoText>
               </label>
               <div className="relative">
                 <input
@@ -128,7 +135,7 @@ const Login = () => {
                   onFocus={() => setActiveField('email')}
                   onBlur={() => setActiveField('')}
                   className="w-full bg-gray-900/70 border border-gray-600/60 rounded-2xl px-4 py-4 text-white placeholder-gray-300 focus:outline-none focus:border-purple-400/80 focus:bg-gray-800/80 transition-all duration-300 backdrop-blur-sm"
-                  placeholder="Enter your email address"
+                  placeholder="Enter your email"
                   required
                 />
                 <div className="absolute inset-0 rounded-2xl bg-gradient-to-r from-purple-500/20 to-pink-500/20 opacity-0 hover:opacity-100 transition-opacity duration-300 pointer-events-none"></div>
@@ -148,7 +155,7 @@ const Login = () => {
                 }`}>
                   <Lock className="w-4 h-4" />
                 </div>
-                <span>Secret Code</span>
+                <AutoText>Password</AutoText>
               </label>
               <div className="relative">
                 <input
@@ -167,6 +174,7 @@ const Login = () => {
                   type="button"
                   onClick={() => setShowPassword(!showPassword)}
                   className="absolute right-4 top-1/2 transform -translate-y-1/2 text-white/60 hover:text-white transition-colors duration-200"
+                  title={showPassword ? 'Hide password' : 'Show password'}
                 >
                   {showPassword ? (
                     <EyeOff className="w-5 h-5" />
@@ -199,12 +207,12 @@ const Login = () => {
                 {isLoading ? (
                   <>
                     <div className="animate-spin rounded-full h-5 w-5 border-2 border-white border-t-transparent"></div>
-                    <span>Starting Adventure...</span>
+                    <AutoText>Starting Adventure...</AutoText>
                   </>
                 ) : (
                   <>
                     <Sparkles className="w-5 h-5" />
-                    <span>Begin Epic Journey</span>
+                    <AutoText>Begin Epic Journey</AutoText>
                     <Zap className="w-5 h-5" />
                   </>
                 )}
@@ -215,12 +223,12 @@ const Login = () => {
           {/* Register Link */}
           <div className="relative z-10 mt-8 text-center">
             <p className="text-white/80">
-              New adventurer?{' '}
+              <AutoText>New adventurer? </AutoText>
               <Link 
                 to="/register" 
                 className="text-purple-300 hover:text-purple-200 font-semibold transition-colors duration-200 hover:underline"
               >
-                Create Your Character
+                <AutoText>Create Your Character</AutoText>
               </Link>
             </p>
           </div>
