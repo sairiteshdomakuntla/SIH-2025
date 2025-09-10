@@ -292,7 +292,7 @@ const Register = () => {
                     borderRadius: '0.8rem',
                     border: formData.interests.includes(subject)
                       ? '2px solid var(--neon-pink)'
-                      : '2px solid var(--neon-blue)',
+                      : '2px solid var(--neon-purple)',
                     background: formData.interests.includes(subject)
                       ? 'rgba(255,0,204,0.12)'
                       : 'rgba(0,234,255,0.08)',
