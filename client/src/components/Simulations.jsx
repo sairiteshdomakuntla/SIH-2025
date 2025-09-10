@@ -47,7 +47,8 @@ const Simulations = () => {
 
 	const fetchSimulations = async () => {
 		try {
-			const token = localStorage.getItem("token") || sessionStorage.getItem("token");
+			const token =
+				localStorage.getItem("token") || sessionStorage.getItem("token");
 			const response = await fetch("http://localhost:3000/api/simulations", {
 				headers: {
 					Authorization: `Bearer ${token}`,
@@ -158,7 +159,7 @@ const Simulations = () => {
 
 	if (loading) {
 		return (
-			<div className="w-full h-full flex items-center justify-center px-5 py-4 relative">
+			<div className="w-full h-full flex items-center justify-center p-4 relative">
 				{/* Animated particles */}
 				<div className="absolute inset-0 overflow-hidden pointer-events-none">
 					{[...Array(20)].map((_, i) => (
@@ -177,7 +178,7 @@ const Simulations = () => {
 					))}
 				</div>
 
-				<div className="backdrop-blur-xl bg-black/40 border border-purple-500/30 rounded-3xl p-8 shadow-2xl relative overflow-hidden w-full">
+				<div className="backdrop-blur-xl bg-black/40 border border-purple-500/30 rounded-3xl p-8 shadow-2xl relative overflow-hidden w-full max-w-md">
 					<div className="flex items-center justify-center space-x-3 mb-4">
 						<div className="bg-gradient-to-r from-purple-600 to-pink-600 p-4 rounded-full shadow-lg transform hover:scale-110 transition-transform duration-300">
 							<Zap className="w-8 h-8 text-white" />
@@ -198,7 +199,7 @@ const Simulations = () => {
 
 	if (error) {
 		return (
-			<div className="w-full h-full flex items-center justify-center px-5 py-4 relative">
+			<div className="w-full h-full flex items-center justify-center p-4 relative">
 				{/* Animated particles */}
 				<div className="absolute inset-0 overflow-hidden pointer-events-none">
 					{[...Array(20)].map((_, i) => (
@@ -217,9 +218,9 @@ const Simulations = () => {
 					))}
 				</div>
 
-				<div className="backdrop-blur-xl bg-black/40 border border-purple-500/30 rounded-3xl p-8 shadow-2xl relative overflow-hidden w-full">
+				<div className="backdrop-blur-xl bg-black/40 border border-purple-500/30 rounded-3xl p-8 shadow-2xl relative overflow-hidden w-full max-w-md">
 					<div className="flex items-center justify-center space-x-3 mb-4">
-						<div className="bg-gradient-to-r from-purple-600 to-pink-600 p-4 rounded-full shadow-lg transform hover:scale-110 transition-transform duration-300">
+						<div className="bg-gradient-to-r from-red-600 to-pink-600 p-4 rounded-full shadow-lg transform hover:scale-110 transition-transform duration-300">
 							<X className="w-8 h-8 text-white" />
 						</div>
 					</div>
@@ -373,10 +374,10 @@ const Simulations = () => {
 					</div>
 				</div>
 			) : (
-				// Simulation Viewer with glassmorphic design
-				<div className="backdrop-blur-xl bg-black/40 border border-purple-500/30 rounded-3xl shadow-2xl relative overflow-hidden w-full h-full">
+				// Full-screen Simulation Viewer with glassmorphic design
+				<div className={`${isFullscreen ? 'fixed inset-0 z-50' : 'w-full h-full'} backdrop-blur-xl bg-black/40 border border-purple-500/30 rounded-3xl shadow-2xl relative overflow-hidden`}>
 					{/* Header */}
-					<div className="flex items-center justify-between p-6 border-b border-purple-500/30">
+					<div className="flex items-center justify-between p-4 border-b border-purple-500/30 bg-black/20">
 						<div className="flex items-center space-x-4">
 							<button
 								onClick={handleCloseSimulation}
@@ -386,8 +387,8 @@ const Simulations = () => {
 								<AutoText>Back</AutoText>
 							</button>
 							<div>
-								<h2 className="text-2xl font-bold text-white">{selectedSimulation.title}</h2>
-								<p className="text-white/70">{selectedSimulation.subject} • {selectedSimulation.category}</p>
+								<h2 className="text-xl font-bold text-white">{selectedSimulation.title}</h2>
+								<p className="text-white/70 text-sm">{selectedSimulation.subject} • {selectedSimulation.category}</p>
 							</div>
 						</div>
 						<div className="flex items-center space-x-3">
@@ -402,18 +403,18 @@ const Simulations = () => {
 								onClick={toggleFullscreen}
 								className="flex items-center space-x-2 px-4 py-2 bg-blue-600/20 hover:bg-blue-600/30 border border-blue-500/40 rounded-xl text-blue-200 transition-all duration-300 backdrop-blur-sm"
 							>
-								{isFullscreen ? <Minimize className="w-4 h-4" /> : <Maximize className="w-4 h-4" />}
-								<AutoText>{isFullscreen ? 'Exit Fullscreen' : 'Fullscreen'}</AutoText>
+								{!isFullscreen ? <Minimize className="w-4 h-4" /> : <Maximize className="w-4 h-4" />}
+								<AutoText>{isFullscreen ? 'Fullscreen' : 'Exit Fullscreen'}</AutoText>
 							</button>
 						</div>
 					</div>
 
-					{/* Simulation Iframe */}
-					<div className={`relative ${isFullscreen ? 'fixed inset-0 z-50 bg-black' : 'h-96'}`}>
+					{/* Simulation Iframe - Takes full remaining space */}
+					<div className={`relative ${isFullscreen ? 'h-[calc(100vh-80px)]' : 'h-[calc(100vh-200px)]'}`}>
 						{isFullscreen && (
 							<button
 								onClick={toggleFullscreen}
-								className="absolute top-4 right-4 z-50 p-2 bg-black/50 hover:bg-black/70 text-white rounded-lg transition-all duration-300"
+								className="absolute top-4 right-4 z-50 p-2 bg-black/70 hover:bg-black/90 text-white rounded-lg transition-all duration-300 border border-white/20"
 								title="Exit Fullscreen (ESC)"
 							>
 								<X className="w-6 h-6" />
@@ -422,14 +423,14 @@ const Simulations = () => {
 						<iframe
 							src={selectedSimulation.iframeUrl}
 							title={selectedSimulation.title}
-							className="w-full h-full border-0"
+							className="w-full h-full border-0 rounded-b-3xl"
 							allowFullScreen
 						/>
 					</div>
 
-					{/* Description */}
+					{/* Description - Only show when not fullscreen */}
 					{!isFullscreen && (
-						<div className="p-6">
+						<div className="p-6 bg-black/10">
 							<h3 className="text-lg font-semibold text-white mb-3">
 								<AutoText>About this Simulation</AutoText>
 							</h3>
