@@ -1,0 +1,291 @@
+/* Import sci-fi fonts */
+@import url('https://fonts.googleapis.com/css2?family=Chakra+Petch:wght@700&display=swap');
+
+:root {
+  --main-bg: #23243a;
+  --panel-bg: #181a2b;
+  --border-glow: #a259ff;
+  --neon-blue: #00eaff;
+  --neon-pink: #ff00cc;
+  --neon-purple: #a259ff;
+  --input-bg: #232946;
+  --input-border: #4e4e7a;
+  --input-glow: 0 0 2px var(--neon-blue);
+  --button-bg: #232946;
+  --button-border: #a259ff;
+  --button-hover-bg: #2d2e4a;
+  --button-hover-border: #00eaff;
+  --button-text: #fff;
+  --text-glow: 0 0 2px var(--neon-blue);
+}
+
+body {
+  min-height: 100vh;
+  background: var(--panel-bg); /* was white earlier */
+  font-family: 'Chakra Petch', 'Segoe UI', Arial, sans-serif;
+  color: #fff;
+  letter-spacing: 0.04em;
+  overflow-x: hidden;
+  position: relative;
+}
+
+
+/* Floating neon particles background for card */
+.gamify-card-bg {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+  overflow: hidden;
+}
+.gamify-particle {
+  position: absolute;
+  border-radius: 50%;
+  opacity: 0.4;
+  filter: blur(2px);
+  animation: floatParticle 7s infinite linear;
+}
+@keyframes floatParticle {
+  0% { transform: translateY(0) scale(1); opacity: 0.4; }
+  50% { opacity: 0.7; }
+  100% { transform: translateY(-60px) scale(1.1); opacity: 0.2; }
+}
+
+/* Animation */
+.gamify-fadein {
+  animation: fadeInUp 1s cubic-bezier(.23,1.01,.32,1) both;
+}
+
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(40px) scale(0.98);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+.gamify-fadein .gamify-input-group, .gamify-fadein .gamify-btn {
+  opacity: 0;
+  transform: translateY(30px);
+  animation: fadeInElement 0.7s cubic-bezier(.23,1.01,.32,1) forwards;
+}
+.gamify-fadein .gamify-input-group:nth-child(1) { animation-delay: 0.1s; }
+.gamify-fadein .gamify-input-group:nth-child(2) { animation-delay: 0.2s; }
+.gamify-fadein .gamify-input-group:nth-child(3) { animation-delay: 0.3s; }
+.gamify-fadein .gamify-input-group:nth-child(4) { animation-delay: 0.4s; }
+.gamify-fadein .gamify-input-group:nth-child(5) { animation-delay: 0.5s; }
+.gamify-fadein .gamify-input-group:nth-child(6) { animation-delay: 0.6s; }
+.gamify-fadein .gamify-btn { animation-delay: 0.7s; }
+@keyframes fadeInElement {
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+/* Card */
+.gamify-card {
+  background: var(--panel-bg);
+  border-radius: 1.2rem;
+  border: 2.5px solid var(--border-glow);
+  box-shadow: 0 0 0 2px var(--panel-bg), 0 0 10px 2px var(--border-glow);
+  padding: 2.2rem 2.2rem 1.7rem 2.2rem;
+  max-width: 790px; /* wider */
+  margin: 2.5rem auto;
+  position: relative;
+  z-index: 2;
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  justify-content: center;
+  transition: box-shadow 0.3s, transform 0.25s cubic-bezier(.23,1.01,.32,1);
+}
+.gamify-card:hover {
+  transform: translateY(-2px) scale(1.01);
+  box-shadow: 0 0 0 2px var(--panel-bg), 0 0 18px 3px var(--border-glow);
+}
+
+/* Title & Subtitle */
+.gamify-title {
+  font-family: 'Chakra Petch', 'Segoe UI', Arial, sans-serif;
+  font-size: 2.2rem;
+  font-weight: 400;
+  text-align: center;
+  margin-bottom: 1.2rem;
+  color: #fff;
+  letter-spacing: 0.12em;
+}
+
+.gamify-subtitle {
+  text-align: center;
+  color: var(--neon-purple);
+  font-size: 1.2rem;
+  margin-bottom: 1.5rem;
+   font-weight: 400;
+  font-family: 'Chakra Petch', 'Segoe UI', Arial, sans-serif;
+  text-shadow: 0 0 3px var(--neon-purple);
+}
+
+/* Input Group */
+.gamify-input-group {
+  margin-bottom: 1.2rem;
+  position: relative;
+}
+
+.gamify-label {
+  display: block;
+  margin-bottom: 0.5rem;
+  color: var(--neon-blue);
+  font-size: 1rem;
+  font-family: 'Chakra Petch', 'Segoe UI', Arial, sans-serif;
+  letter-spacing: 0.06em;
+}
+
+/* Floating Label */
+.floating-label input {
+  padding-top: 1.3rem;
+}
+
+.floating-label .floating {
+  position: absolute;
+  top: 0.8rem;
+  left: 1rem;
+  color: var(--neon-green);
+  pointer-events: none;
+  transition: 0.2s ease all;
+  opacity: 0.6;
+}
+
+.floating-label input:focus + .floating,
+.floating-label input:not(:placeholder-shown) + .floating {
+  top: -0.6rem;
+  left: 0.8rem;
+  font-size: 0.75rem;
+  background: var(--input-bg);
+  padding: 0 0.25rem;
+  opacity: 1;
+}
+
+/* Inputs */
+.gamify-input {
+  width: 100%;
+  padding: 0.85rem 1.1rem;
+  border-radius: 0.7rem;
+  border: 2px solid var(--input-border);
+  background: var(--input-bg);
+  color: #fff;
+  font-size: 1.1rem;
+  font-family: 'Chakra Petch', 'Segoe UI', Arial, sans-serif;
+  outline: none;
+  box-shadow: var(--input-glow);
+  transition: border 0.2s, box-shadow 0.2s, transform 0.2s;
+}
+.gamify-input:hover {
+  border-color: var(--neon-blue);
+  box-shadow: 0 0 8px var(--neon-blue);
+}
+.gamify-input:focus {
+  border-color: var(--neon-pink);
+  box-shadow: 0 0 10px var(--neon-pink);
+}
+
+/* Button */
+.gamify-btn {
+  width: 100%;
+  padding: 1rem 0;
+  border: 2px solid var(--button-border);
+  border-radius: 0.9rem;
+  background: var(--button-bg);
+  color: var(--button-text);
+  font-family: 'Chakra Petch', 'Segoe UI', Arial, sans-serif;
+  font-size: 1.2rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  box-shadow: none;
+  cursor: pointer;
+  margin-top: 0.5rem;
+  transition: transform 0.18s, box-shadow 0.18s, background 0.3s, border 0.2s;
+  position: relative;
+  overflow: hidden;
+}
+.gamify-btn:hover,
+.gamify-btn:focus {
+  background: var(--button-hover-bg);
+  border-color: var(--button-hover-border);
+  color: var(--neon-blue);
+  box-shadow: 0 0 10px var(--neon-blue);
+  transform: scale(1.03) translateY(-2px);
+}
+
+/* Links */
+.gamify-link {
+  color: var(--neon-blue);
+  text-decoration: underline;
+  font-family: 'Chakra Petch', 'Segoe UI', Arial, sans-serif;
+  font-size: 1rem;
+  transition: color 0.2s;
+  display: inline-block;
+  margin-top: 1rem;
+}
+
+.gamify-link:hover {
+  color: var(--neon-pink);
+}
+
+/* Tips */
+.gamify-tip {
+  color: var(--neon-purple);
+  font-size: 1rem;
+  margin-top: -0.8rem;
+  margin-bottom: 1rem;
+  display: block;
+  text-shadow: 0 0 2px var(--neon-purple);
+  font-family: 'Chakra Petch', 'Segoe UI', Arial, sans-serif;
+}
+
+/* Error Box */
+.gamify-error {
+  background: rgba(255,0,100,0.10);
+  color: var(--neon-pink);
+  border: 1px solid var(--neon-pink);
+  border-radius: 0.7rem;
+  padding: 0.8rem 1rem;
+  margin-bottom: 1.2rem;
+  text-align: center;
+  font-family: 'Chakra Petch', 'Segoe UI', Arial, sans-serif;
+  text-shadow: 0 0 6px var(--neon-pink);
+}
+
+/* Icon */
+.gamify-icon {
+  vertical-align: middle;
+  margin-right: 0.5rem;
+  width: 1.5em;
+  height: 1.8em;
+}
+
+/* Responsive */
+@media (max-width: 480px) {
+  .gamify-card {
+    max-width: 96%;
+    padding: 1.2rem 0.5rem;
+  }
+
+  .gamify-title {
+    font-size: 1.5rem;
+  }
+
+  .gamify-btn {
+    font-size: 1rem;
+  }
+}
+
+/* Responsive override */
+@media (max-width: 700px) {
+  .gamify-card {
+    max-width: 98vw;
+    padding: 1.2rem 0.5rem;
+  }
+}
