@@ -31,8 +31,8 @@ const Navbar = () => {
         top: 0,
         position: 'fixed',
         background: 'linear-gradient(90deg, #181a2b 60%, #232946 100%)',
-        borderBottom: '2px solid var(--neon-blue)',
-        boxShadow: '0 0 16px var(--neon-blue)',
+        borderBottom: '2px solid var(--border-glow)',
+        boxShadow: '0 0 16px var(--border-glow)',
         zIndex: 1000
       }}
     >
@@ -46,12 +46,14 @@ const Navbar = () => {
         width: '100%'
       }}>
         {/* Logo */}
-        <Link to="/" style={{ display: 'flex', alignItems: 'center', textDecoration: 'none' }}>
-          <BookOpen className="gamify-icon" />
+        <Link to="/" style={{ display: 'flex', alignItems: 'center', textDecoration: 'none', gap: '0.6rem' }}>
+          <span style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '2.2rem', width: '2.2rem' }}>
+            <BookOpen className="gamify-icon" style={{ marginRight: 0, marginLeft: 0, width: '2rem', height: '2rem' }} />
+          </span>
           <span style={{
             fontFamily: "'Orbitron', 'Audiowide', sans-serif",
             fontWeight: 700,
-            fontSize: '1.5rem',
+            fontSize: '1.6rem',
             color: 'var(--neon-blue)',
             textShadow: 'var(--text-glow)'
           }}>
@@ -123,9 +125,15 @@ const Navbar = () => {
             </>
           ) : (
             <div style={{ display: 'flex', alignItems: 'center', gap: '1.5rem' }}>
-              <Link to="/login" className="gamify-link" style={{ marginTop: 0 }}>
-                Login
-              </Link>
+              {window.location.pathname === '/login' ? (
+                <Link to="/register" className="gamify-btn" style={{ width: 'auto', padding: '0.7rem 2rem', marginTop: 0 }}>
+                  Register
+                </Link>
+              ) : (
+                <Link to="/login" className="gamify-btn" style={{ width: 'auto', padding: '0.7rem 2rem', marginTop: 0 }}>
+                  Login
+                </Link>
+              )}
               <Link to="/register" className="gamify-btn" style={{ width: 'auto', padding: '0.7rem 2rem', marginTop: 0 }}>
                 Start Quest
               </Link>

@@ -89,37 +89,28 @@ const Register = () => {
 
   return (
     <div className="gamify-fadein" style={{ minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'var(--panel-bg)', paddingTop: '5.5rem' }}>
-      <div className="gamify-card" style={{ width: '100%', maxWidth: 520, position: 'relative' }}>
-        {/* Gamified XP Bar */}
-        <div className="gamify-progress-container" style={{ marginBottom: 24 }}>
-          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 4 }}>
-            <span className="gamify-tip" style={{ color: 'var(--neon-pink)', fontWeight: 700 }}>
-              <BadgeCheck className="gamify-icon" style={{ marginRight: 2 }} />
-              New Player
-            </span>
-          </div>
-        </div>
+      <div className="gamify-card" style={{ width: '100%', maxWidth:580, position: 'relative' }}>
+        {/* Top Icon */}
+       
 
-        {/* Animated badge/icon */}
-        <div style={{ display: 'flex', justifyContent: 'center', marginBottom: 8 }}>
+        {/* Gamified XP Bar */}
+        <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', marginBottom: 24 }}>
           <span style={{
-            display: 'inline-flex',
-            alignItems: 'center',
-            background: 'linear-gradient(90deg, var(--neon-blue), var(--neon-pink))',
-            borderRadius: '1rem',
-            padding: '0.3rem 1.2rem',
-            boxShadow: '0 0 4px var(--neon-blue), 0 0 4px var(--neon-pink)',
-           
+            fontWeight: 700,
+            color: 'var(--neon-pink)',
+            fontFamily: "'Orbitron', 'Audiowide', sans-serif",
+            fontSize: '1.18rem',
+            textAlign: 'center',
+            letterSpacing: '0.04em',
+            textShadow: '0 0 6px var(--neon-pink)'
           }}>
-            <Sparkles className="gamify-ico" style={{ marginRight: 6 }} />
-            <span style={{ fontWeight: 600, color: '#fff', fontFamily: "'Orbitron', 'Audiowide', sans-serif" }}>
-              Welcome, Adventurer!
+            <span style={{display:'flex'}}><BadgeCheck style={{marginRight:9}} />
+            New Player
             </span>
           </span>
         </div>
 
         <div className="gamify-title">
-          <Star className="gamify-icon" />
           Create Your Learning Character!
         </div>
         <div className="gamify-subtitle">
@@ -137,8 +128,9 @@ const Register = () => {
 
         <form onSubmit={handleSubmit}>
           <div className="gamify-input-group">
-            <label className="gamify-label" htmlFor="name">
-              <User className="gamify-icon" /> Full Name
+            <label className="gamify-label" htmlFor="name" style={{ display: 'flex', alignItems: 'center', gap: '0.7rem', marginBottom: '0.5rem' }}>
+              <User className="gamify-icon" style={{ marginBottom: 0 }} />
+              Full Name
             </label>
             <input
               type="text"
@@ -149,12 +141,13 @@ const Register = () => {
               className="gamify-input"
               placeholder="Enter your name"
               required
+              style={{ marginTop: '0.2rem' }}
             />
           </div>
-
           <div className="gamify-input-group">
-            <label className="gamify-label" htmlFor="email">
-              <Mail className="gamify-icon" /> Email Address
+            <label className="gamify-label" htmlFor="email" style={{ display: 'flex', alignItems: 'center', gap: '0.7rem', marginBottom: '0.5rem' }}>
+              <Mail className="gamify-icon" style={{ marginBottom: 0 }} />
+              Email Address
             </label>
             <input
               type="email"
@@ -165,12 +158,13 @@ const Register = () => {
               className="gamify-input"
               placeholder="Enter your email"
               required
+              style={{ marginTop: '0.2rem' }}
             />
           </div>
-
           <div className="gamify-input-group">
-            <label className="gamify-label" htmlFor="password">
-              <Lock className="gamify-icon" /> Password
+            <label className="gamify-label" htmlFor="password" style={{ display: 'flex', alignItems: 'center', gap: '0.7rem', marginBottom: '0.5rem' }}>
+              <Lock className="gamify-icon" style={{ marginBottom: 0 }} />
+              Password
             </label>
             <div style={{ position: 'relative' }}>
               <input
@@ -182,7 +176,7 @@ const Register = () => {
                 className="gamify-input"
                 placeholder="Create a password"
                 required
-                style={{ paddingRight: 40 }}
+                style={{ paddingRight: 40, marginTop: '0.2rem' }}
               />
               <button
                 type="button"
@@ -206,10 +200,10 @@ const Register = () => {
               </button>
             </div>
           </div>
-
           <div className="gamify-input-group">
-            <label className="gamify-label" htmlFor="confirmPassword">
-              <Lock className="gamify-icon" /> Confirm Password
+            <label className="gamify-label" htmlFor="confirmPassword" style={{ display: 'flex', alignItems: 'center', gap: '0.7rem', marginBottom: '0.5rem' }}>
+              <Lock className="gamify-icon" style={{ marginBottom: 0 }} />
+              Confirm Password
             </label>
             <div style={{ position: 'relative' }}>
               <input
@@ -221,7 +215,7 @@ const Register = () => {
                 className="gamify-input"
                 placeholder="Confirm your password"
                 required
-                style={{ paddingRight: 40 }}
+                style={{ paddingRight: 40, marginTop: '0.2rem' }}
               />
               <button
                 type="button"
@@ -245,10 +239,10 @@ const Register = () => {
               </button>
             </div>
           </div>
-
           <div className="gamify-input-group">
-            <label className="gamify-label" htmlFor="location">
-              <MapPin className="gamify-icon" /> Location
+            <label className="gamify-label" htmlFor="location" style={{ display: 'flex', alignItems: 'center', gap: '0.7rem', marginBottom: '0.5rem' }}>
+              <MapPin className="gamify-icon" style={{ marginBottom: 0 }} />
+              Location
             </label>
             <input
               type="text"
@@ -259,12 +253,13 @@ const Register = () => {
               className="gamify-input"
               placeholder="Your village/city"
               required
+              style={{ marginTop: '0.2rem' }}
             />
           </div>
-
           <div className="gamify-input-group">
-            <label className="gamify-label" htmlFor="grade">
-              <BookOpen className="gamify-icon" /> Grade Level
+            <label className="gamify-label" htmlFor="grade" style={{ display: 'flex', alignItems: 'center', gap: '0.7rem', marginBottom: '0.5rem' }}>
+              <BookOpen className="gamify-icon" style={{ marginBottom: 0 }} />
+              Grade Level
             </label>
             <select
               name="grade"
@@ -273,6 +268,7 @@ const Register = () => {
               onChange={handleChange}
               className="gamify-input"
               required
+              style={{ marginTop: '0.2rem' }}
             >
               <option value="">Select your grade</option>
               {grades.map(grade => (
@@ -322,14 +318,16 @@ const Register = () => {
             type="submit"
             disabled={isLoading}
             className="gamify-btn"
-            style={{ marginTop: 24 }}
+            style={{ marginTop: 24, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '1rem' }}
           >
             {isLoading ? (
               <span>Creating Character...</span>
             ) : (
               <>
-                <Sparkles className="gamify-icon" />
-                Begin My Quest!
+                <span style={{ display: 'flex', alignItems: 'center', height: '100%' }}>
+                  <Sparkles className="gamify-icon" style={{ marginRight: 6, marginLeft: 4, verticalAlign: 'middle' }} />
+                </span>
+                <span style={{ flex: 1, textAlign: 'center' }}>Begin My Quest!</span>
               </>
             )}
           </button>

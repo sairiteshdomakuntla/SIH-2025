@@ -40,8 +40,12 @@ const Login = () => {
   return (
     <div className="gamify-fadein" style={{ minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'var(--panel-bg)', paddingTop: '5.5rem' }}>
       <div className="gamify-card" style={{ width: '100%', maxWidth: 520, position: 'relative' }}>
+        {/* Top Icon */}
+        <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', marginBottom: 12 }}>
+          <Gamepad2 className="gamify-icon" style={{ fontSize: '2.2rem', marginRight: 0, marginLeft: 0 }} />
+        </div>
+
         <div className="gamify-title">
-          <Gamepad2 className="gamify-icon" />
           Welcome Back, Explorer!
         </div>
         <div className="gamify-subtitle">
@@ -55,10 +59,10 @@ const Login = () => {
         )}
 
         <form onSubmit={handleSubmit}>
-          {/* Email Field */}
           <div className="gamify-input-group">
-            <label className="gamify-label" htmlFor="email">
-              <Mail className="gamify-icon" /> Email Address
+            <label className="gamify-label" htmlFor="email" style={{ display: 'flex', alignItems: 'center', gap: '0.7rem', marginBottom: '0.5rem' }}>
+              <Mail className="gamify-icon" style={{ marginBottom: 0 }} />
+              Email Address
             </label>
             <input
               type="email"
@@ -69,13 +73,13 @@ const Login = () => {
               className="gamify-input"
               placeholder="Enter your email"
               required
+              style={{ marginTop: '0.2rem' }}
             />
           </div>
-
-          {/* Password Field */}
           <div className="gamify-input-group">
-            <label className="gamify-label" htmlFor="password">
-              <Lock className="gamify-icon" /> Password
+            <label className="gamify-label" htmlFor="password" style={{ display: 'flex', alignItems: 'center', gap: '0.7rem', marginBottom: '0.5rem' }}>
+              <Lock className="gamify-icon" style={{ marginBottom: 0 }} />
+              Password
             </label>
             <div style={{ position: 'relative' }}>
               <input
@@ -87,7 +91,7 @@ const Login = () => {
                 className="gamify-input"
                 placeholder="Enter your password"
                 required
-                style={{ paddingRight: 40 }}
+                style={{ paddingRight: 40, marginTop: '0.2rem' }}
               />
               <button
                 type="button"
@@ -122,13 +126,16 @@ const Login = () => {
             type="submit"
             disabled={isLoading}
             className="gamify-btn"
+            style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '1rem' }}
           >
             {isLoading ? (
               <span>Starting Adventure...</span>
             ) : (
               <>
-                <Sparkles className="gamify-icon" />
-                Start Adventure
+                <span style={{ display: 'flex', alignItems: 'center', height: '100%' }}>
+                  <Sparkles className="gamify-icon" style={{ marginRight: 7, marginLeft: 3, verticalAlign: 'middle' }} />
+                </span>
+                <span style={{ flex: 1, textAlign: 'center' }}>Start Adventure</span>
               </>
             )}
           </button>
