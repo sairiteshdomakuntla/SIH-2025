@@ -88,6 +88,26 @@ export const AuthProvider = ({ children }) => {
     window.dispatchEvent(new Event('authChange'));
   };
 
+  const updateProfile = async (profileData) => {
+    try {
+      setError('');
+      const token = localStorage.getItem('token');
+      const response = await axios.put(`${API_URL}/api/auth/profile`, profileData, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      setUser(response.data.user);
+      
+      // Dispatch custom event to trigger auth state update
+      window.dispatchEvent(new Event('authChange'));
+      
+      return { success: true };
+    } catch (error) {
+      const message = error.response?.data?.message || 'Profile update failed';
+      setError(message);
+      return { success: false, error: message };
+    }
+  };
+
   const value = {
     user,
     loading,
@@ -95,6 +115,7 @@ export const AuthProvider = ({ children }) => {
     register,
     login,
     logout,
+    updateProfile,
     setError
   };
 

@@ -5,6 +5,7 @@ import RootLayout from './components/RootLayout';
 import Login from './components/Login';
 import Register from './components/Register';
 import Dashboard from './components/Dashboard';
+import Profile from './components/Profile';
 import QuizGenerator from './components/QuizGenerator';
 import ErrorPage from './components/ErrorPage';
 import './App.css';
@@ -66,6 +67,11 @@ function App() {
         {
           path: 'dashboard',
           element: isAuthenticated ? <Dashboard /> : <Navigate to="/login" />,
+          loader: protectedLoader
+        },
+        {
+          path: 'profile',
+          element: isAuthenticated ? <Profile /> : <Navigate to="/login" />,
           loader: protectedLoader
         },
         {
