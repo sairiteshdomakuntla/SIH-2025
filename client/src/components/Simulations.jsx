@@ -399,13 +399,13 @@ const Simulations = () => {
 								<Download className="w-4 h-4" />
 								<AutoText>Download</AutoText>
 							</button>
-							<button
+							{/* <button
 								onClick={toggleFullscreen}
 								className="flex items-center space-x-2 px-4 py-2 bg-blue-600/20 hover:bg-blue-600/30 border border-blue-500/40 rounded-xl text-blue-200 transition-all duration-300 backdrop-blur-sm"
 							>
 								{!isFullscreen ? <Minimize className="w-4 h-4" /> : <Maximize className="w-4 h-4" />}
 								<AutoText>{isFullscreen ? 'Fullscreen' : 'Exit Fullscreen'}</AutoText>
-							</button>
+							</button> */}
 						</div>
 					</div>
 
