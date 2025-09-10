@@ -5,6 +5,7 @@ import RootLayout from './components/RootLayout';
 import Login from './components/Login';
 import Register from './components/Register';
 import Dashboard from './components/Dashboard';
+import QuizGenerator from './components/QuizGenerator';
 import ErrorPage from './components/ErrorPage';
 import './App.css';
 
@@ -67,12 +68,11 @@ function App() {
           element: isAuthenticated ? <Dashboard /> : <Navigate to="/login" />,
           loader: protectedLoader
         },
-        // Add more protected routes as needed
-        // {
-        //   path: 'profile',
-        //   element: isAuthenticated ? <Profile /> : <Navigate to="/login" />,
-        //   loader: protectedLoader
-        // },
+        {
+          path: 'quiz',
+          element: isAuthenticated ? <QuizGenerator /> : <Navigate to="/login" />,
+          loader: protectedLoader
+        }
       ]
     }
   ]);

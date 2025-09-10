@@ -3,6 +3,7 @@ const dotenv = require("dotenv");
 const cors = require("cors");
 const connectDB = require("./config/db");
 const authRoutes = require("./routes/authRoutes");
+const quizRoutes = require("./routes/quizRoutes");
 
 // Load environment variables
 dotenv.config();
@@ -24,6 +25,7 @@ app.get("/", (req, res) => {
 });
 
 app.use("/api/auth", authRoutes);
+app.use("/api/quiz", quizRoutes);
 
 // Start server
 app.listen(PORT, () => {

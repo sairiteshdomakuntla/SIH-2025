@@ -1,6 +1,7 @@
 import React from 'react';
 import { useAuth } from '../context/AuthContext';
-import { Trophy, Star, BookOpen, Target, Crown, Zap } from 'lucide-react';
+import { Trophy, Star, BookOpen, Target, Crown, Zap, Brain } from 'lucide-react';
+import { Link } from 'react-router-dom';
 
 const Dashboard = () => {
   const { user } = useAuth();
@@ -98,6 +99,25 @@ const Dashboard = () => {
                 <button className="bg-purple-600 text-white px-4 py-2 rounded-lg hover:bg-purple-700 transition-colors">
                   Continue
                 </button>
+              </div>
+              
+              {/* AI Quiz Generator */}
+              <div className="flex items-center justify-between p-4 bg-gradient-to-r from-pink-50 to-purple-50 rounded-lg border border-pink-200">
+                <div className="flex items-center space-x-4">
+                  <div className="p-2 bg-pink-100 rounded-lg">
+                    <Brain className="h-6 w-6 text-pink-600" />
+                  </div>
+                  <div>
+                    <h3 className="font-semibold text-gray-900">AI Quiz Challenge</h3>
+                    <p className="text-sm text-gray-600">Personalized quizzes powered by AI</p>
+                  </div>
+                </div>
+                <Link 
+                  to="/quiz" 
+                  className="bg-gradient-to-r from-pink-600 to-purple-600 text-white px-4 py-2 rounded-lg hover:from-pink-700 hover:to-purple-700 transition-all duration-300"
+                >
+                  Start Quiz
+                </Link>
               </div>
             </div>
           </div>
