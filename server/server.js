@@ -5,6 +5,7 @@ const connectDB = require("./config/db");
 const authRoutes = require("./routes/authRoutes");
 const quizRoutes = require("./routes/quizRoutes");
 const profileRoutes = require("./routes/profileRoutes");
+const simulationRoutes = require("./routes/simulationRoutes");
 
 // Load environment variables
 dotenv.config();
@@ -28,6 +29,7 @@ app.get("/", (req, res) => {
 app.use("/api/auth", authRoutes);
 app.use("/api/quiz", quizRoutes);
 app.use("/api/profile", profileRoutes);
+app.use("/api/simulations", simulationRoutes);
 
 // Start server
 app.listen(PORT, () => {

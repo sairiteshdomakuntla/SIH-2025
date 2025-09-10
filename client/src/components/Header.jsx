@@ -1,7 +1,7 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
-import { Gamepad2, User, LogOut, ChevronDown } from 'lucide-react';
+import { Gamepad2, User, LogOut, ChevronDown, Brain, Beaker } from 'lucide-react';
 import LanguageSwitcher from './LanguageSwitcher';
 import AutoText from './AutoText';
 
@@ -47,6 +47,26 @@ const Header = () => {
       </div>
 
       <div className="flex items-center space-x-4">
+        {/* Navigation Links - only show when logged in */}
+        {user && (
+          <div className="hidden md:flex items-center space-x-6">
+            <Link 
+              to="/quiz" 
+              className="flex items-center space-x-2 px-3 py-2 rounded-lg bg-white/5 hover:bg-white/15 border border-white/10 hover:border-purple-400/50 text-white/80 hover:text-white transition-all duration-300"
+            >
+              <Brain className="w-4 h-4" />
+              <AutoText>Quiz</AutoText>
+            </Link>
+            <Link 
+              to="/simulations" 
+              className="flex items-center space-x-2 px-3 py-2 rounded-lg bg-white/5 hover:bg-white/15 border border-white/10 hover:border-blue-400/50 text-white/80 hover:text-white transition-all duration-300"
+            >
+              <Beaker className="w-4 h-4" />
+              <AutoText>Simulations</AutoText>
+            </Link>
+          </div>
+        )}
+
         {/* Language Switcher */}
         <LanguageSwitcher />
         

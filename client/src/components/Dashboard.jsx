@@ -1,6 +1,6 @@
 import React from 'react';
 import { useAuth } from '../context/AuthContext';
-import { Trophy, Star, BookOpen, Target, Crown, Zap, Brain } from 'lucide-react';
+import { Trophy, Star, BookOpen, Target, Crown, Zap, Brain, Beaker } from 'lucide-react';
 import AutoText from './AutoText';
 import { Link } from 'react-router-dom';
 
@@ -138,6 +138,29 @@ const Dashboard = () => {
                   className="bg-gradient-to-r from-pink-600 to-purple-600 text-white px-4 py-2 rounded-lg hover:from-pink-700 hover:to-purple-700 transition-all duration-300"
                 >
                   Start Quiz
+                </Link>
+              </div>
+
+              {/* Interactive Simulations */}
+              <div className="flex items-center justify-between p-4 bg-gradient-to-r from-blue-50 to-cyan-50 rounded-lg border border-blue-200">
+                <div className="flex items-center space-x-4">
+                  <div className="p-2 bg-blue-100 rounded-lg">
+                    <Beaker className="h-6 w-6 text-blue-600" />
+                  </div>
+                  <div>
+                    <h3 className="font-semibold text-gray-900">
+                      <AutoText>Interactive Simulations</AutoText>
+                    </h3>
+                    <p className="text-sm text-gray-600">
+                      <AutoText>Explore science through virtual experiments</AutoText>
+                    </p>
+                  </div>
+                </div>
+                <Link 
+                  to="/simulations" 
+                  className="bg-gradient-to-r from-blue-600 to-cyan-600 text-white px-4 py-2 rounded-lg hover:from-blue-700 hover:to-cyan-700 transition-all duration-300"
+                >
+                  <AutoText>Explore</AutoText>
                 </Link>
               </div>
             </div>

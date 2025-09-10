@@ -7,6 +7,7 @@ import Register from './components/Register';
 import Dashboard from './components/Dashboard';
 import Profile from './components/Profile';
 import QuizGenerator from './components/QuizGenerator';
+import Simulations from './components/Simulations';
 import ErrorPage from './components/ErrorPage';
 import './App.css';
 
@@ -77,6 +78,11 @@ function App() {
         {
           path: 'quiz',
           element: isAuthenticated ? <QuizGenerator /> : <Navigate to="/login" />,
+          loader: protectedLoader
+        },
+        {
+          path: 'simulations',
+          element: isAuthenticated ? <Simulations /> : <Navigate to="/login" />,
           loader: protectedLoader
         }
       ]
