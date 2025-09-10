@@ -1,85 +1,63 @@
 import React, { useState, useEffect } from 'react';
-import { createBrowserRouter, RouterProvider, Navigate, redirect } from 'react-router-dom';
+import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import { AuthProvider } from './context/AuthContext';
-import RootLayout from './components/RootLayout';
+import Navbar from './components/Header';
 import Login from './components/Login';
 import Register from './components/Register';
 import Dashboard from './components/Dashboard';
 import QuizGenerator from './components/QuizGenerator';
-import ErrorPage from './components/ErrorPage';
+import DailyChallenge from './components/DailyChallenge';
+import PrivateRoute from './components/ProtectedRoute';
 import './App.css';
 
+// Background component
+const AppBackground = () => (
+  <div className="fixed inset-0 -z-10">
+    <div className="absolute inset-0 bg-gradient-to-br from-purple-900 via-blue-900 to-indigo-900"></div>
+    <div
+      className="absolute inset-0 bg-[url('data:image/svg+xml,%3Csvg%20width=%2260%22%20height=%2260%22%20viewBox=%220%200%2060%2060%22%20xmlns=%22http://www.w3.org/2000/svg%22%3E%3Cg%20fill=%22none%22%20fill-rule=%22evenodd%22%3E%3Cg%20fill=%229C92AC%22%20fill-opacity=%220.1%22%3E%3Ccircle%20cx=%2230%22%20cy=%2230%22%20r=%221%22/%3E%3C/g%3E%3C/g%3E%3C/svg%3E')] opacity-20"
+    ></div>
+  </div>
+);
+
 function App() {
-  const [isAuthenticated, setIsAuthenticated] = useState(false);
-
-  // Check if user is authenticated and listen for changes
-  useEffect(() => {
-    const checkAuth = () => {
-      const token = localStorage.getItem('token') || sessionStorage.getItem('token');
-      setIsAuthenticated(!!token);
-    };
-
-    // Initial check
-    checkAuth();
-
-    // Listen for storage changes (when login/logout happens)
-    window.addEventListener('storage', checkAuth);
-    
-    // Listen for custom auth events
-    window.addEventListener('authChange', checkAuth);
-
-    return () => {
-      window.removeEventListener('storage', checkAuth);
-      window.removeEventListener('authChange', checkAuth);
-    };
-  }, []);
-
-  console.log("isAuthenticated:", isAuthenticated);
-
-  // Protected route loader function
-  const protectedLoader = () => {
-    const token = localStorage.getItem('token') || sessionStorage.getItem('token');
-    if (!token) {
-      return redirect('/login');
-    }
-    return null;
-  };
-
-  const router = createBrowserRouter([
-    {
-      path: '/',
-      element: <RootLayout />,
-      errorElement: <ErrorPage />,
-      children: [
-        {
-          path: '/',
-          element: isAuthenticated ? <Navigate to="/dashboard" /> : <Navigate to='/login'/>,
-        },
-        {
-          path: 'login',
-          element: isAuthenticated ? <Navigate to="/dashboard" /> : <Login />
-        },
-        {
-          path: 'register',
-          element: isAuthenticated ? <Navigate to="/dashboard" /> : <Register />
-        },
-        {
-          path: 'dashboard',
-          element: isAuthenticated ? <Dashboard /> : <Navigate to="/login" />,
-          loader: protectedLoader
-        },
-        {
-          path: 'quiz',
-          element: isAuthenticated ? <QuizGenerator /> : <Navigate to="/login" />,
-          loader: protectedLoader
-        }
-      ]
-    }
-  ]);
-
   return (
     <AuthProvider>
-      <RouterProvider router={router} />
+      <Router>
+        <div className="min-h-screen bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900">
+          <AppBackground />
+          <Navbar />
+          <Routes>
+            <Route path="/login" element={<Login />} />
+            <Route path="/register" element={<Register />} />
+            <Route path="/" element={<Navigate to="/dashboard" replace />} />
+            <Route
+              path="/dashboard"
+              element={
+                <PrivateRoute>
+                  <Dashboard />
+                </PrivateRoute>
+              }
+            />
+            <Route
+              path="/quiz"
+              element={
+                <PrivateRoute>
+                  <QuizGenerator />
+                </PrivateRoute>
+              }
+            />
+            <Route
+              path="/daily-challenge"
+              element={
+                <PrivateRoute>
+                  <DailyChallenge />
+                </PrivateRoute>
+              }
+            />
+          </Routes>
+        </div>
+      </Router>
     </AuthProvider>
   );
 }

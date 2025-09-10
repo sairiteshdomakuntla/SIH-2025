@@ -1,5 +1,6 @@
 const User = require("../models/User");
-dotenv = require("dotenv");
+const { GoogleGenerativeAI } = require("@google/generative-ai");
+const dotenv = require("dotenv");
 dotenv.config();
 
 class QuizService {

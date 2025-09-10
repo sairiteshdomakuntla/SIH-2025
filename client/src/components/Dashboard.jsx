@@ -1,11 +1,35 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { useAuth } from '../context/AuthContext';
-import { Trophy, Star, BookOpen, Target, Crown, Zap, Brain } from 'lucide-react';
+import { Trophy, Star, BookOpen, Target, Crown, Zap, Brain, Flame, Calendar } from 'lucide-react';
 import AutoText from './AutoText';
 import { Link } from 'react-router-dom';
 
 const Dashboard = () => {
   const { user } = useAuth();
+  const [streakData, setStreakData] = useState(null);
+  const API_URL = import.meta.env.VITE_BACKEND_URL;
+
+  useEffect(() => {
+    fetchStreakData();
+  }, []);
+
+  const fetchStreakData = async () => {
+    try {
+      const token = localStorage.getItem('token');
+      const response = await fetch(`${API_URL}/api/daily-challenge/streak-stats`, {
+        headers: {
+          'Authorization': `Bearer ${token}`
+        }
+      });
+
+      const data = await response.json();
+      if (data.success) {
+        setStreakData(data.streakData);
+      }
+    } catch (error) {
+      console.error('Error fetching streak data:', error);
+    }
+  };
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 p-6">
@@ -30,6 +54,17 @@ const Dashboard = () => {
                   <AutoText>Level</AutoText> {user?.level || 1}
                 </p>
               </div>
+              {/* Streak Display */}
+              {streakData && (
+                <div className="text-center">
+                  <div className="flex items-center justify-center w-16 h-16 bg-orange-400 rounded-full mb-2">
+                    <Flame className="h-8 w-8 text-purple-700" />
+                  </div>
+                  <p className="text-sm font-bold">
+                    {streakData.currentStreak} <AutoText tag="span">day streak</AutoText>
+                  </p>
+                </div>
+              )}
             </div>
           </div>
         </div>
@@ -78,17 +113,17 @@ const Dashboard = () => {
             </div>
           </div>
 
-          <div className="bg-white rounded-xl p-6 shadow-lg border border-purple-100">
+          <div className="bg-white rounded-xl p-6 shadow-lg border border-orange-100">
             <div className="flex items-center">
-              <div className="p-3 bg-purple-100 rounded-lg">
-                <Target className="h-6 w-6 text-purple-600" />
+              <div className="p-3 bg-orange-100 rounded-lg">
+                <Flame className="h-6 w-6 text-orange-600" />
               </div>
               <div className="ml-4">
                 <p className="text-sm font-medium text-gray-600">
-                  <AutoText>Streak</AutoText>
+                  <AutoText>Current Streak</AutoText>
                 </p>
                 <p className="text-2xl font-bold text-gray-900">
-                  {user?.streak || 0} <AutoText tag="span">days</AutoText>
+                  {streakData?.currentStreak || 0} <AutoText tag="span">days</AutoText>
                 </p>
               </div>
             </div>
@@ -103,6 +138,46 @@ const Dashboard = () => {
               <AutoText>Continue Your Quest</AutoText>
             </h2>
             <div className="space-y-4">
+              {/* Daily Challenge */}
+              <div className="flex items-center justify-between p-4 bg-gradient-to-r from-orange-50 to-red-50 rounded-lg border border-orange-200">
+                <div className="flex items-center space-x-4">
+                  <div className="p-2 bg-orange-100 rounded-lg">
+                    <Calendar className="h-6 w-6 text-orange-600" />
+                  </div>
+                  <div>
+                    <h3 className="font-semibold text-gray-900 flex items-center space-x-2">
+                      <AutoText>Daily Challenge</AutoText>
+                      {streakData?.canSubmitToday && (
+                        <span className="bg-red-500 text-white text-xs px-2 py-1 rounded-full animate-pulse">
+                          <AutoText>New!</AutoText>
+                        </span>
+                      )}
+                    </h3>
+                    <p className="text-sm text-gray-600">
+                      {streakData?.canSubmitToday ? (
+                        <AutoText>Today's challenge is ready!</AutoText>
+                      ) : (
+                        <AutoText>Challenge completed for today</AutoText>
+                      )}
+                    </p>
+                  </div>
+                </div>
+                <Link 
+                  to="/daily-challenge" 
+                  className={`px-4 py-2 rounded-lg transition-all duration-300 ${
+                    streakData?.canSubmitToday 
+                      ? 'bg-gradient-to-r from-orange-600 to-red-600 text-white hover:from-orange-700 hover:to-red-700' 
+                      : 'bg-gray-200 text-gray-600 hover:bg-gray-300'
+                  }`}
+                >
+                  {streakData?.canSubmitToday ? (
+                    <AutoText>Start Challenge</AutoText>
+                  ) : (
+                    <AutoText>View Results</AutoText>
+                  )}
+                </Link>
+              </div>
+
               <div className="flex items-center justify-between p-4 bg-gradient-to-r from-purple-50 to-indigo-50 rounded-lg border border-purple-200">
                 <div className="flex items-center space-x-4">
                   <div className="p-2 bg-purple-100 rounded-lg">
@@ -129,25 +204,70 @@ const Dashboard = () => {
                     <Brain className="h-6 w-6 text-pink-600" />
                   </div>
                   <div>
-                    <h3 className="font-semibold text-gray-900">AI Quiz Challenge</h3>
-                    <p className="text-sm text-gray-600">Personalized quizzes powered by AI</p>
+                    <h3 className="font-semibold text-gray-900">
+                      <AutoText>AI Quiz Challenge</AutoText>
+                    </h3>
+                    <p className="text-sm text-gray-600">
+                      <AutoText>Personalized quizzes powered by AI</AutoText>
+                    </p>
                   </div>
                 </div>
                 <Link 
                   to="/quiz" 
                   className="bg-gradient-to-r from-pink-600 to-purple-600 text-white px-4 py-2 rounded-lg hover:from-pink-700 hover:to-purple-700 transition-all duration-300"
                 >
-                  Start Quiz
+                  <AutoText>Start Quiz</AutoText>
                 </Link>
               </div>
             </div>
           </div>
 
-          {/* Achievements */}
+          {/* Achievements & Streak Info */}
           <div className="bg-white rounded-xl p-6 shadow-lg">
             <h2 className="text-2xl font-bold text-gray-900 mb-4">
-              <AutoText>Recent Achievements</AutoText>
+              <AutoText>Streak & Achievements</AutoText>
             </h2>
+            
+            {/* Streak Stats */}
+            {streakData && (
+              <div className="mb-6 p-4 bg-gradient-to-r from-orange-50 to-red-50 rounded-lg border border-orange-200">
+                <div className="flex items-center justify-between mb-3">
+                  <div className="flex items-center space-x-2">
+                    <Flame className="h-5 w-5 text-orange-600" />
+                    <span className="font-semibold text-gray-900">
+                      <AutoText>Streak Stats</AutoText>
+                    </span>
+                  </div>
+                </div>
+                <div className="space-y-2 text-sm">
+                  <div className="flex justify-between">
+                    <span className="text-gray-600">
+                      <AutoText>Current:</AutoText>
+                    </span>
+                    <span className="font-bold text-orange-600">
+                      {streakData.currentStreak} days
+                    </span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-gray-600">
+                      <AutoText>Best:</AutoText>
+                    </span>
+                    <span className="font-bold text-purple-600">
+                      {streakData.longestStreak} days
+                    </span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-gray-600">
+                      <AutoText>Total:</AutoText>
+                    </span>
+                    <span className="font-bold text-green-600">
+                      {streakData.totalCompleted}
+                    </span>
+                  </div>
+                </div>
+              </div>
+            )}
+
             <div className="space-y-3">
               <div className="flex items-center space-x-3 p-3 bg-yellow-50 rounded-lg">
                 <Trophy className="h-6 w-6 text-yellow-600" />
