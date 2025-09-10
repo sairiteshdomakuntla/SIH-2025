@@ -11,6 +11,7 @@ import {
   Twitter,
   Mail
 } from 'lucide-react';
+import AutoText from './AutoText';
 
 const Footer = () => {
   return (
@@ -23,14 +24,19 @@ const Footer = () => {
               <div className="bg-gradient-to-r from-purple-600 to-pink-600 p-2 rounded-lg">
                 <Gamepad2 className="w-6 h-6 text-white" />
               </div>
-              <span className="text-xl font-bold bg-gradient-to-r from-white to-purple-200 bg-clip-text text-transparent">
+              <AutoText 
+                tag="span"
+                className="text-xl font-bold bg-gradient-to-r from-white to-purple-200 bg-clip-text text-transparent"
+              >
                 Rural Quest
-              </span>
+              </AutoText>
             </div>
-            <p className="text-gray-300 text-sm">
-              Gamifying rural education for the next generation of learners. 
-              Adventure awaits in every lesson!
-            </p>
+            <AutoText 
+              tag="p"
+              className="text-gray-300 text-sm"
+            >
+              Gamifying rural education for the next generation of learners. Adventure awaits in every lesson!
+            </AutoText>
             <div className="flex space-x-3">
               <div className="bg-yellow-500/20 border border-yellow-500/40 rounded-full p-2">
                 <Trophy className="w-4 h-4 text-yellow-400" />
@@ -48,27 +54,27 @@ const Footer = () => {
           <div className="space-y-4">
             <h3 className="text-lg font-semibold text-white flex items-center space-x-2">
               <Star className="w-5 h-5 text-purple-400" />
-              <span>Quick Quest</span>
+              <AutoText>Quick Quest</AutoText>
             </h3>
             <ul className="space-y-2">
               <li>
                 <Link to="/dashboard" className="text-gray-300 hover:text-purple-400 transition-colors duration-300 text-sm">
-                  Dashboard
+                  <AutoText>Dashboard</AutoText>
                 </Link>
               </li>
               <li>
                 <Link to="/leaderboard" className="text-gray-300 hover:text-purple-400 transition-colors duration-300 text-sm">
-                  Leaderboard
+                  <AutoText>Leaderboard</AutoText>
                 </Link>
               </li>
               <li>
                 <Link to="/achievements" className="text-gray-300 hover:text-purple-400 transition-colors duration-300 text-sm">
-                  Achievements
+                  <AutoText>Achievements</AutoText>
                 </Link>
               </li>
               <li>
                 <Link to="/profile" className="text-gray-300 hover:text-purple-400 transition-colors duration-300 text-sm">
-                  Profile
+                  <AutoText>Profile</AutoText>
                 </Link>
               </li>
             </ul>
@@ -78,14 +84,14 @@ const Footer = () => {
           <div className="space-y-4">
             <h3 className="text-lg font-semibold text-white flex items-center space-x-2">
               <Shield className="w-5 h-5 text-blue-400" />
-              <span>Learning Realms</span>
+              <AutoText>Learning Realms</AutoText>
             </h3>
             <ul className="space-y-2">
-              <li className="text-gray-300 text-sm">Mathematics Kingdom</li>
-              <li className="text-gray-300 text-sm">Science Laboratory</li>
-              <li className="text-gray-300 text-sm">Language Arts</li>
-              <li className="text-gray-300 text-sm">Social Studies</li>
-              <li className="text-gray-300 text-sm">Creative Arts</li>
+              <AutoText tag="li" className="text-gray-300 text-sm">Mathematics Kingdom</AutoText>
+              <AutoText tag="li" className="text-gray-300 text-sm">Science Laboratory</AutoText>
+              <AutoText tag="li" className="text-gray-300 text-sm">Language Arts</AutoText>
+              <AutoText tag="li" className="text-gray-300 text-sm">Social Studies</AutoText>
+              <AutoText tag="li" className="text-gray-300 text-sm">Creative Arts</AutoText>
             </ul>
           </div>
 
@@ -93,7 +99,7 @@ const Footer = () => {
           <div className="space-y-4">
             <h3 className="text-lg font-semibold text-white flex items-center space-x-2">
               <Heart className="w-5 h-5 text-pink-400" />
-              <span>Connect</span>
+              <AutoText>Connect</AutoText>
             </h3>
             <div className="space-y-3">
               <div className="flex space-x-3">
@@ -117,9 +123,12 @@ const Footer = () => {
                 </a>
               </div>
               <div className="bg-gradient-to-r from-purple-600/20 to-pink-600/20 border border-purple-500/30 rounded-lg p-3">
-                <p className="text-sm text-gray-300">
+                <AutoText 
+                  tag="p"
+                  className="text-sm text-gray-300"
+                >
                   Join our quest to transform rural education!
-                </p>
+                </AutoText>
               </div>
             </div>
           </div>
@@ -129,19 +138,19 @@ const Footer = () => {
         <div className="mt-12 pt-8 border-t border-purple-500/30">
           <div className="flex flex-col md:flex-row justify-between items-center space-y-4 md:space-y-0">
             <div className="flex items-center space-x-2 text-gray-400 text-sm">
-              <span>© 2025 Rural Quest.</span>
-              <span>All adventures reserved.</span>
+              <AutoText tag="span">© 2025 Rural Quest.</AutoText>
+              <AutoText tag="span">All adventures reserved.</AutoText>
               <Star className="w-4 h-4 text-yellow-400 animate-pulse" />
             </div>
             <div className="flex items-center space-x-6 text-sm">
               <Link to="/privacy" className="text-gray-400 hover:text-purple-400 transition-colors duration-300">
-                Privacy Policy
+                <AutoText>Privacy Policy</AutoText>
               </Link>
               <Link to="/terms" className="text-gray-400 hover:text-purple-400 transition-colors duration-300">
-                Terms of Service
+                <AutoText>Terms of Service</AutoText>
               </Link>
               <Link to="/help" className="text-gray-400 hover:text-purple-400 transition-colors duration-300">
-                Help Center
+                <AutoText>Help Center</AutoText>
               </Link>
             </div>
           </div>
