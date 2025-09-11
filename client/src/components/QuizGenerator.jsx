@@ -66,75 +66,53 @@ const QuizGenerator = () => {
     setLoading(true);
     try {
       const token = localStorage.getItem('token');
-      let allQuestions = [];
-      let successCount = 0;
-      const maxQuestions = 10;
 
-      // Generate questions with delays to avoid rate limiting
-      for (let i = 0; i < maxQuestions; i++) {
-        try {
-          let response;
-
-          if (quizPreferences.subject && quizPreferences.difficulty) {
-            // Send custom preferences (classLevel will be extracted from user model on backend)
-            response = await fetch(`${API_URL}/api/quiz/generate-custom`, {
-              method: 'POST',
-              headers: {
-                'Authorization': `Bearer ${token}`,
-                'Content-Type': 'application/json'
-              },
-              body: JSON.stringify({
-                subject: quizPreferences.subject,
-                difficulty: quizPreferences.difficulty
-                // No classLevel - backend will extract from user model
-              })
-            });
-          } else {
-            response = await fetch(`${API_URL}/api/quiz/generate`, {
-              method: 'POST',
-              headers: {
-                'Authorization': `Bearer ${token}`,
-                'Content-Type': 'application/json'
-              }
-            });
+      let response;
+      if (quizPreferences.subject && quizPreferences.difficulty) {
+        // Send custom preferences (classLevel will be extracted from user model on backend)
+        response = await fetch(`${API_URL}/api/quiz/generate-custom`, {
+          method: 'POST',
+          headers: {
+            'Authorization': `Bearer ${token}`,
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({
+            subject: quizPreferences.subject,
+            difficulty: quizPreferences.difficulty,
+            questionCount: 10
+          })
+        });
+      } else {
+        response = await fetch(`${API_URL}/api/quiz/generate`, {
+          method: 'POST',
+          headers: {
+            'Authorization': `Bearer ${token}`,
+            'Content-Type': 'application/json'
           }
-
-          const data = await response.json();
-          
-          if (data.success) {
-            allQuestions.push({
-              ...data.quiz,
-              questionNumber: i + 1
-            });
-            successCount++;
-          } else {
-            console.warn(`Failed to generate question ${i + 1}:`, data.message);
-          }
-
-          // Add delay between requests to avoid overwhelming the API
-          if (i < maxQuestions - 1) {
-            await new Promise(resolve => setTimeout(resolve, 1000)); // 1 second delay
-          }
-
-        } catch (error) {
-          console.error(`Error generating question ${i + 1}:`, error);
-        }
+        });
       }
 
-      // Proceed even if we have fewer than 10 questions (minimum 5)
-      if (allQuestions.length >= 5) {
-        setQuiz(allQuestions);
+      const data = await response.json();
+      
+      if (data.success && data.questions && data.questions.length > 0) {
+        // Add question numbers to each question
+        const questionsWithNumbers = data.questions.map((question, index) => ({
+          ...question,
+          questionNumber: index + 1
+        }));
+
+        setQuiz(questionsWithNumbers);
         setCurrentQuestionIndex(0);
         setSelectedAnswer('');
         setShowResult(false);
         setShowQuizForm(false);
-        setUserAnswers(new Array(allQuestions.length).fill(null));
+        setUserAnswers(new Array(questionsWithNumbers.length).fill(null));
         setTimeLeft(600); // Reset timer to 10 minutes
         setQuizStarted(true);
         setFinalResults(null);
       } else {
-        console.error('Failed to generate sufficient questions');
-        alert(`Only generated ${allQuestions.length} questions. Please try again.`);
+        console.error('Failed to generate quiz:', data.message);
+        alert('Failed to generate quiz. Please try again later.');
       }
     } catch (error) {
       console.error('Error generating quiz:', error);
