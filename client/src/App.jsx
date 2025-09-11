@@ -19,6 +19,7 @@ import DailyQuestion from './components/DailyQuestion';
 import Notes from './components/Notes';
 import NoteView from './components/NoteView';
 import BadgesGrid from './components/BadgesGrid';
+import InteractiveLearning from './components/InteractiveLearning';
 import './App.css';
 
 function App() {
@@ -128,6 +129,11 @@ function App() {
         {
           path: 'badges',
           element: isAuthenticated ? <BadgesGrid /> : <Navigate to="/login" />,
+          loader: protectedLoader
+        },
+        {
+          path: 'interactive-learning',
+          element: isAuthenticated ? <InteractiveLearning /> : <Navigate to="/login" />,
           loader: protectedLoader
         }
       ]
