@@ -42,6 +42,26 @@ const userSchema = new mongoose.Schema({
     type: String,
     default: null
   },
+  badges: [{
+    id: String,
+    name: String,
+    description: String,
+    icon: String,
+    color: String,
+    earnedAt: Date,
+    category: String
+  }],
+  quizStreak: { type: Number, default: 0 },
+  highestScore: { type: Number, default: 0 },
+  fastestTime: { type: Number, default: null },
+  dailyQuestionsCompleted: { type: Number, default: 0 },
+  completedSimulations: { type: Number, default: 0 },
+  quizHistory: [{
+    subject: String,
+    score: Number,
+    completedAt: Date,
+    timeTaken: Number
+  }]
 }, {
   timestamps:true
 });

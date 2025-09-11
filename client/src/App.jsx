@@ -17,6 +17,7 @@ import LearnViaAnimations from './components/LearnViaAnimations';
 import ErrorPage from './components/ErrorPage';
 import DailyQuestion from './components/DailyQuestion';
 import Notes from './components/Notes';
+import BadgesGrid from './components/BadgesGrid';
 import './App.css';
 
 function App() {
@@ -116,6 +117,11 @@ function App() {
         {
           path: 'notes',
           element: isAuthenticated ? <Notes /> : <Navigate to="/login" />,
+          loader: protectedLoader
+        },
+        {
+          path: 'badges',
+          element: isAuthenticated ? <BadgesGrid /> : <Navigate to="/login" />,
           loader: protectedLoader
         }
       ]

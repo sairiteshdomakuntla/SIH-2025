@@ -1,6 +1,7 @@
 const express = require("express");
 const quizService = require("../services/quizService");
 const authenticateToken = require("../middleware/authMiddleware");
+const badgeService = require('../services/badgeService');
 
 const router = express.Router();
 
@@ -85,6 +86,85 @@ router.post("/generate-custom", authenticateToken, async (req, res) => {
     res.status(500).json({
       success: false,
       message: "Failed to generate custom quiz",
+      error: error.message
+    });
+  }
+});
+
+// Submit quiz route (update existing)
+router.post('/submit', authenticateToken, async (req, res) => {
+  try {
+    const { answers, quizId } = req.body;
+
+    // Validate request
+    if (!Array.isArray(answers) || !quizId) {
+      return res.status(400).json({
+        success: false,
+        message: "Invalid request data"
+      });
+    }
+
+    // Calculate results
+    const correctAnswers = await quizService.calculateQuizResults(quizId, answers);
+    const totalQuestions = answers.length;
+    
+    // Update user stats
+    const user = await User.findById(req.user.id);
+    const score = Math.round((correctAnswers / totalQuestions) * 100);
+    const timeTaken = req.body.timeTaken || 0;
+    
+    // Update quiz-related stats
+    user.completedQuizzes = (user.completedQuizzes || 0) + 1;
+    user.points = (user.points || 0) + (correctAnswers * 10);
+    user.highestScore = Math.max(user.highestScore || 0, score);
+    
+    // Update fastest time (only if quiz completed successfully)
+    if (score > 0 && timeTaken > 0) {
+      user.fastestTime = user.fastestTime ? 
+        Math.min(user.fastestTime, timeTaken) : timeTaken;
+    }
+    
+    // Update quiz streak
+    if (score >= 60) { // Pass threshold
+      user.quizStreak = (user.quizStreak || 0) + 1;
+    } else {
+      user.quizStreak = 0;
+    }
+    
+    // Add to quiz history
+    if (!user.quizHistory) user.quizHistory = [];
+    user.quizHistory.push({
+      subject: req.body.subject || 'general',
+      score,
+      completedAt: new Date(),
+      timeTaken
+    });
+    
+    // Recalculate average score
+    const totalScore = user.quizHistory.reduce((sum, quiz) => sum + quiz.score, 0);
+    user.averageScore = Math.round(totalScore / user.quizHistory.length);
+    
+    // Update level based on points
+    user.level = Math.floor((user.points || 0) / 200) + 1;
+    
+    await user.save();
+    
+    // Check and award badges
+    const newBadges = await badgeService.checkAndAwardBadges(req.user.id);
+    
+    res.json({
+      success: true,
+      results,
+      score,
+      correctAnswers,
+      totalQuestions,
+      newBadges // Return newly earned badges
+    });
+  } catch (error) {
+    console.error("Quiz submission error:", error);
+    res.status(500).json({
+      success: false,
+      message: "Failed to submit quiz",
       error: error.message
     });
   }

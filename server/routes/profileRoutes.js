@@ -3,6 +3,7 @@ const User = require("../models/User");
 const authenticateToken = require("../middleware/authMiddleware");
 const multer = require("multer");
 const supabase = require("../config/supabase");
+const badgeService = require('../services/badgeService');
 
 const router = express.Router();
 
@@ -268,6 +269,18 @@ router.get("/dashboard", authenticateToken, async (req, res) => {
   } catch (error) {
     console.error("Get dashboard error:", error);
     res.status(500).json({ message: "Server error" });
+  }
+});
+
+// Get user badges
+router.get('/badges', authenticateToken, async (req, res) => {
+  try {
+    console.log('Fetching badges for user:', req.user.userId);
+    const badges = await badgeService.getBadgesWithProgress(req.user.userId);
+    res.json({ success: true, badges });
+  } catch (error) {
+    console.error('Error fetching badges:', error);
+    res.status(500).json({ success: false, message: 'Internal server error' });
   }
 });
 
