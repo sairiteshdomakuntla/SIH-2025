@@ -76,7 +76,6 @@ noteSchema.index({ userId: 1, createdAt: -1 });
 noteSchema.index({ userId: 1, subject: 1 });
 noteSchema.index({ userId: 1, tags: 1 });
 noteSchema.index({ title: 'text', tags: 'text' });
-noteSchema.index({ slug: 1 });
 
 // Generate slug before saving
 noteSchema.pre('save', async function(next) {
