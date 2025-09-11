@@ -15,6 +15,7 @@ const Community = () => {
   const [selectedRoom, setSelectedRoom] = useState(null);
   const [rooms, setRooms] = useState([]);
   const [leaderboard, setLeaderboard] = useState([]);
+  const [userGrade, setUserGrade] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [showCreateModal, setShowCreateModal] = useState(false);
@@ -113,6 +114,7 @@ const Community = () => {
       
       if (data.success) {
         setLeaderboard(data.leaderboard || []);
+        setUserGrade(data.userGrade);
       }
     } catch (error) {
       console.error('Error fetching leaderboard:', error);
@@ -229,9 +231,17 @@ const Community = () => {
           {activeTab === 'leaderboard' && (
             <div className="lg:col-span-4">
               <div className="bg-white/10 backdrop-blur-sm border border-white/20 rounded-xl p-6">
-                <h2 className="text-2xl font-bold text-white mb-6 text-center">
-                  🏆 Community Leaderboard
-                </h2>
+                <div className="text-center mb-6">
+                  <h2 className="text-2xl font-bold text-white mb-2">
+                    🏆 Class Leaderboard
+                  </h2>
+                  {userGrade && (
+                    <div className="inline-flex items-center space-x-2 bg-purple-600/20 border border-purple-500/30 rounded-full px-4 py-2">
+                      <Trophy className="w-4 h-4 text-purple-300" />
+                      <span className="text-purple-200 font-medium">Grade {userGrade} Competition</span>
+                    </div>
+                  )}
+                </div>
                 {leaderboard.length > 0 ? (
                   <div className="space-y-4">
                     {leaderboard.map((player, index) => (
@@ -275,7 +285,15 @@ const Community = () => {
                             
                             <div>
                               <p className="text-white font-medium">{player.name || 'Unknown'}</p>
-                              <p className="text-white/60 text-sm">Level {player.level || 0}</p>
+                              <div className="flex items-center space-x-2 text-sm">
+                                <span className="text-white/60">Level {player.level || 0}</span>
+                                {player.grade && (
+                                  <>
+                                    <span className="text-white/40">•</span>
+                                    <span className="text-purple-300">Grade {player.grade}</span>
+                                  </>
+                                )}
+                              </div>
                             </div>
                           </div>
                         </div>
@@ -290,7 +308,20 @@ const Community = () => {
                 ) : (
                   <div className="text-center py-12">
                     <Trophy className="w-12 h-12 text-white/40 mx-auto mb-4" />
-                    <p className="text-white/60">No leaderboard data available</p>
+                    <p className="text-white/60 mb-2">No leaderboard data available</p>
+                    {userGrade && (
+                      <p className="text-white/40 text-sm">
+                        Complete quizzes and activities to compete with your Grade {userGrade} classmates!
+                      </p>
+                    )}
+                  </div>
+                )}
+                
+                {leaderboard.length > 0 && (
+                  <div className="mt-6 text-center">
+                    <p className="text-white/50 text-sm">
+                      🎯 Compete with students from your grade level • Complete quizzes and activities to earn XP!
+                    </p>
                   </div>
                 )}
               </div>

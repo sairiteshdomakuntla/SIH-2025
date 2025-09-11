@@ -208,17 +208,28 @@ router.get('/my-rooms', authenticateToken, async (req, res) => {
   }
 });
 
-// Get community leaderboard
+// Get community leaderboard (filtered by user's grade level)
 router.get('/leaderboard', authenticateToken, async (req, res) => {
   try {
-    const topUsers = await User.find({})
-      .select('name points level completedQuizzes avatar')
+    // First get the current user to determine their grade level
+    const currentUser = await User.findById(req.user.userId).select('grade');
+    
+    if (!currentUser) {
+      return res.status(404).json({ success: false, message: 'User not found' });
+    }
+
+    // Filter leaderboard by same grade level as current user
+    const topUsers = await User.find({ 
+      grade: currentUser.grade  // Only users from the same grade
+    })
+      .select('name points level completedQuizzes avatar grade')
       .sort({ points: -1 })
       .limit(10);
 
     res.json({
       success: true,
-      leaderboard: topUsers
+      leaderboard: topUsers,
+      userGrade: currentUser.grade  // Send back the grade for display purposes
     });
   } catch (error) {
     console.error('Get leaderboard error:', error);
