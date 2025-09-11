@@ -1,7 +1,7 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
-import { Gamepad2, User, LogOut, ChevronDown, Brain, Beaker } from 'lucide-react';
+import { Gamepad2, User, LogOut, ChevronDown, Brain, Beaker, MessageCircle } from 'lucide-react';
 import LanguageSwitcher from './LanguageSwitcher';
 import AutoText from './AutoText';
 
@@ -63,6 +63,13 @@ const Header = () => {
             >
               <Beaker className="w-4 h-4" />
               <AutoText>Simulations</AutoText>
+            </Link>
+            <Link 
+              to="/learn-animations" 
+              className="flex items-center space-x-2 px-3 py-2 rounded-lg bg-white/5 hover:bg-white/15 border border-white/10 hover:border-green-400/50 text-white/80 hover:text-white transition-all duration-300"
+            >
+              <MessageCircle className="w-4 h-4" />
+              <AutoText>AI Learning</AutoText>
             </Link>
           </div>
         )}

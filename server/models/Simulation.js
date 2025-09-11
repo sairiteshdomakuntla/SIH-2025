@@ -6,6 +6,12 @@ const simulationSchema = new mongoose.Schema({
 		required: true,
 		trim: true,
 	},
+	slug: {
+		type: String,
+		required: true,
+		unique: true,
+		trim: true,
+	},
 	subject: {
 		type: String,
 		required: true,
@@ -38,6 +44,24 @@ const simulationSchema = new mongoose.Schema({
 		type: Date,
 		default: Date.now,
 	},
+});
+
+// Function to generate slug from title
+function generateSlug(title) {
+	return title
+		.toLowerCase()
+		.replace(/[^a-z0-9\s-]/g, '') // Remove special characters
+		.replace(/\s+/g, '-') // Replace spaces with hyphens
+		.replace(/-+/g, '-') // Replace multiple hyphens with single
+		.trim('-'); // Remove leading/trailing hyphens
+}
+
+// Pre-save middleware to generate slug
+simulationSchema.pre('save', function(next) {
+	if (this.isModified('title') || this.isNew) {
+		this.slug = generateSlug(this.title);
+	}
+	next();
 });
 
 // Create index for better search performance

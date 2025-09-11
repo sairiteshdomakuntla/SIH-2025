@@ -35,6 +35,65 @@ router.get("/subject/:subject", authenticateToken, async (req, res) => {
 	}
 });
 
+// Get simulation by slug
+router.get("/slug/:slug", async (req, res) => {
+	try {
+		const { slug } = req.params;
+		const simulation = await Simulation.findOne({ slug });
+		
+		if (!simulation) {
+			return res.status(404).json({
+				success: false,
+				message: "Simulation not found"
+			});
+		}
+		
+		res.json({
+			success: true,
+			simulation
+		});
+	} catch (error) {
+		console.error("Error fetching simulation by slug:", error);
+		res.status(500).json({
+			success: false,
+			message: "Failed to fetch simulation",
+		});
+	}
+});
+
+// Search simulations by keywords
+router.get("/search/:keywords", async (req, res) => {
+	try {
+		const { keywords } = req.params;
+		
+		// Create search regex for flexible matching
+		const searchRegex = new RegExp(keywords.split(' ').join('|'), 'i');
+		
+		const simulations = await Simulation.find({
+			$or: [
+				{ title: searchRegex },
+				{ category: searchRegex },
+				{ tags: { $in: [searchRegex] } },
+				{ description: searchRegex }
+			]
+		})
+		.limit(3) // Limit to 3 most relevant simulations
+		.sort({ createdAt: -1 });
+		
+		res.json({
+			success: true,
+			simulations,
+			count: simulations.length
+		});
+	} catch (error) {
+		console.error("Error searching simulations:", error);
+		res.status(500).json({
+			success: false,
+			message: "Failed to search simulations",
+		});
+	}
+});
+
 // Create sample simulations (for development/testing)
 router.post("/seed", authenticateToken, async (req, res) => {
 	try {

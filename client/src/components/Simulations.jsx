@@ -1,8 +1,10 @@
 import React, { useState, useEffect } from "react";
-import { Play, Search, Filter, X, Maximize, Minimize, Download, ArrowLeft, Beaker, Atom, Dna, Calculator, Zap, Star, Crown, Target } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
+import { Play, Search, Filter, X, Maximize, Minimize, Download, ArrowLeft, Beaker, Atom, Dna, Calculator, Zap, Star, Crown, Target, ExternalLink } from 'lucide-react';
 import AutoText from './AutoText';
 
 const Simulations = () => {
+	const navigate = useNavigate();
 	const [simulations, setSimulations] = useState([]);
 	const [selectedSimulation, setSelectedSimulation] = useState(null);
 	const [loading, setLoading] = useState(true);
@@ -332,8 +334,7 @@ const Simulations = () => {
 							filteredSimulations.map((simulation) => (
 								<div
 									key={simulation._id}
-									onClick={() => handleSimulationClick(simulation)}
-									className="group p-6 bg-white/10 hover:bg-white/20 border border-purple-500/30 hover:border-purple-400/50 rounded-xl cursor-pointer transition-all duration-300 backdrop-blur-sm hover:scale-105 hover:shadow-xl"
+									className="group p-6 bg-white/10 hover:bg-white/20 border border-purple-500/30 hover:border-purple-400/50 rounded-xl transition-all duration-300 backdrop-blur-sm hover:scale-105 hover:shadow-xl"
 								>
 									<div className="flex items-start justify-between mb-4">
 										<div className="bg-gradient-to-r from-purple-600 to-pink-600 p-2 rounded-lg group-hover:scale-110 transition-transform duration-300">
@@ -343,13 +344,16 @@ const Simulations = () => {
 											{simulation.subject}
 										</span>
 									</div>
-									<h3 className="text-xl font-bold text-white mb-2 group-hover:text-purple-200 transition-colors duration-300">
+									<h3 
+										onClick={() => handleSimulationClick(simulation)}
+										className="text-xl font-bold text-white mb-2 group-hover:text-purple-200 transition-colors duration-300 cursor-pointer"
+									>
 										{simulation.title}
 									</h3>
-									<p className="text-white/70 text-sm mb-3 line-clamp-2">
+									<p className="text-white/70 text-sm mb-4 line-clamp-2">
 										{simulation.description}
 									</p>
-									<div className="flex items-center justify-between">
+									<div className="flex items-center justify-between mb-3">
 										<span className="text-white/50 text-xs">
 											{simulation.category}
 										</span>
@@ -357,6 +361,22 @@ const Simulations = () => {
 											<Star className="w-4 h-4 text-yellow-400" />
 											<span className="text-white/70 text-sm">4.5</span>
 										</div>
+									</div>
+									<div className="flex items-center justify-between gap-2">
+										<button
+											onClick={() => handleSimulationClick(simulation)}
+											className="flex-1 bg-gradient-to-r from-purple-600 to-pink-600 text-white py-2 px-3 rounded-lg text-sm font-medium hover:from-purple-700 hover:to-pink-700 transition-all duration-200 flex items-center justify-center gap-2"
+										>
+											<Play className="w-4 h-4" />
+											Quick View
+										</button>
+										<button
+											onClick={() => navigate(`/simulation/${simulation.slug}`)}
+											className="bg-white/20 text-white py-2 px-3 rounded-lg text-sm font-medium hover:bg-white/30 transition-all duration-200 flex items-center justify-center gap-2"
+										>
+											<ExternalLink className="w-4 h-4" />
+											Full Page
+										</button>
 									</div>
 								</div>
 							))

@@ -8,6 +8,8 @@ import Dashboard from './components/Dashboard';
 import Profile from './components/Profile';
 import QuizGenerator from './components/QuizGenerator';
 import Simulations from './components/Simulations';
+import SimulationView from './components/SimulationView';
+import LearnViaAnimations from './components/LearnViaAnimations';
 import ErrorPage from './components/ErrorPage';
 import './App.css';
 
@@ -83,6 +85,16 @@ function App() {
         {
           path: 'simulations',
           element: isAuthenticated ? <Simulations /> : <Navigate to="/login" />,
+          loader: protectedLoader
+        },
+        {
+          path: 'simulation/:slug',
+          element: isAuthenticated ? <SimulationView /> : <Navigate to="/login" />,
+          loader: protectedLoader
+        },
+        {
+          path: 'learn-animations',
+          element: isAuthenticated ? <LearnViaAnimations /> : <Navigate to="/login" />,
           loader: protectedLoader
         }
       ]
