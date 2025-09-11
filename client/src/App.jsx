@@ -17,6 +17,7 @@ import LearnViaAnimations from './components/LearnViaAnimations';
 import ErrorPage from './components/ErrorPage';
 import DailyQuestion from './components/DailyQuestion';
 import Notes from './components/Notes';
+import NoteView from './components/NoteView';
 import './App.css';
 
 function App() {
@@ -116,6 +117,11 @@ function App() {
         {
           path: 'notes',
           element: isAuthenticated ? <Notes /> : <Navigate to="/login" />,
+          loader: protectedLoader
+        },
+        {
+          path: 'note/:slug',
+          element: isAuthenticated ? <NoteView /> : <Navigate to="/login" />,
           loader: protectedLoader
         }
       ]

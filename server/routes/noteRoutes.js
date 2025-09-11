@@ -42,6 +42,28 @@ router.get('/', authenticateToken, async (req, res) => {
   }
 });
 
+// Get note by slug
+router.get('/slug/:slug', authenticateToken, async (req, res) => {
+  try {
+    const note = await Note.findOne({ 
+      slug: req.params.slug, 
+      $or: [
+        { userId: req.user.userId },
+        { 'sharedWith.userId': req.user.userId }
+      ]
+    });
+
+    if (!note) {
+      return res.status(404).json({ success: false, message: 'Note not found' });
+    }
+
+    res.json(note);
+  } catch (error) {
+    console.error('Error fetching note by slug:', error);
+    res.status(500).json({ success: false, message: 'Failed to fetch note' });
+  }
+});
+
 // Get single note
 router.get('/:id', authenticateToken, async (req, res) => {
   try {

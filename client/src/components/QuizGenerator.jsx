@@ -225,21 +225,22 @@ const QuizGenerator = () => {
   };
 
   return (
-    <div className="max-w-4xl mx-auto p-6">
-      {/* Header */}
-      <div className="text-center mb-8">
-        <div className="flex justify-center mb-4">
-          <div className="bg-gradient-to-r from-purple-600 to-pink-600 p-4 rounded-full shadow-lg">
-            <Brain className="w-8 h-8 text-white" />
+    <div className="min-h-full flex flex-col">
+      <div className="flex-1 max-w-4xl mx-auto p-6 w-full">
+        {/* Header */}
+        <div className="text-center mb-8">
+          <div className="flex justify-center mb-4">
+            <div className="bg-gradient-to-r from-purple-600 to-pink-600 p-4 rounded-full shadow-lg">
+              <Brain className="w-8 h-8 text-white" />
+            </div>
           </div>
+          <h1 className="text-3xl font-bold bg-gradient-to-r from-white to-purple-200 bg-clip-text text-transparent mb-2">
+            AI Quiz Generator
+          </h1>
+          <p className="text-white/80 text-lg">
+            10 questions • 10 minutes • Personalized AI quizzes
+          </p>
         </div>
-        <h1 className="text-3xl font-bold bg-gradient-to-r from-white to-purple-200 bg-clip-text text-transparent mb-2">
-          AI Quiz Generator
-        </h1>
-        <p className="text-white/80 text-lg">
-          10 questions • 10 minutes • Personalized AI quizzes
-        </p>
-      </div>
 
       {/* Quiz Preference Form */}
       {!quiz && !showQuizForm && (
@@ -653,6 +654,7 @@ const QuizGenerator = () => {
           </div>
         </div>
       )}
+      </div>
     </div>
   );
 };
