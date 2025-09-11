@@ -1,6 +1,6 @@
 import React from 'react';
 import { useAuth } from '../context/AuthContext';
-import { Trophy, Star, BookOpen, Target, Crown, Zap, Brain, Beaker, Flame } from 'lucide-react';
+import { Trophy, Star, BookOpen, Target, Crown, Zap, Brain, Beaker, Flame, FileText } from 'lucide-react';
 import AutoText from './AutoText';
 import { Link, useNavigate } from 'react-router-dom';
 
@@ -212,6 +212,19 @@ const Dashboard = () => {
               Take Today's Challenge
             </button>
           </div>
+        </div>
+
+        {/* Add Notes button to navigation */}
+        <div className="mt-8">
+          <Link 
+            to="/notes" 
+            className="flex items-center space-x-3 p-4 bg-white/10 rounded-xl hover:bg-white/20 transition-all duration-300"
+          >
+            <FileText className="w-6 h-6 text-purple-400" />
+            <span className="text-white font-medium">
+              <AutoText>Notes</AutoText>
+            </span>
+          </Link>
         </div>
       </div>
     </div>

@@ -12,6 +12,7 @@ const communityRoutes = require("./routes/communityRoutes");
 const SocketHandler = require("./socket/socketHandler");
 const dailyQuestionRoutes = require('./routes/dailyQuestionRoutes');
 const cronService = require('./services/cronService');
+const noteRoutes = require('./routes/noteRoutes');
 
 // Load environment variables
 dotenv.config();
@@ -51,6 +52,7 @@ app.use("/api/profile", profileRoutes);
 app.use("/api/simulations", simulationRoutes);
 app.use("/api/community", communityRoutes);
 app.use('/api/daily', dailyQuestionRoutes);
+app.use('/api/notes', noteRoutes);
 // Start server
 server.listen(PORT, () => {
   console.log(`🚀 Server running on http://localhost:${PORT}`);

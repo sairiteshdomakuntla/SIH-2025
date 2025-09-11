@@ -14,6 +14,7 @@ import QuizGenerator from './components/QuizGenerator';
 import Simulations from './components/Simulations';
 import ErrorPage from './components/ErrorPage';
 import DailyQuestion from './components/DailyQuestion';
+import Notes from './components/Notes';
 import './App.css';
 
 function App() {
@@ -98,6 +99,11 @@ function App() {
         {
           path: 'daily-question',
           element: isAuthenticated ? <DailyQuestion /> : <Navigate to="/login" />,
+          loader: protectedLoader
+        },
+        {
+          path: 'notes',
+          element: isAuthenticated ? <Notes /> : <Navigate to="/login" />,
           loader: protectedLoader
         }
       ]
