@@ -20,7 +20,7 @@ class CronService {
    */
   startDailyQuestionGeneration() {
     // Run at 12:00 AM every day (IST timezone)
-    const job = cron.schedule('21 19 * * *', async () => {
+    const job = cron.schedule('0 0 * * *', async () => {
       console.log('Starting daily question generation...');
       try {
         await dailyQuestionService.generateDailyQuestions();
