@@ -17,6 +17,14 @@ import LearnViaAnimations from './components/LearnViaAnimations';
 import ErrorPage from './components/ErrorPage';
 import DailyQuestion from './components/DailyQuestion';
 import Notes from './components/Notes';
+
+// Multiplayer Room Components
+import CreateRoom from './components/CreateRoom';
+import JoinRoom from './components/JoinRoom';
+import RoomLobby from './components/RoomLobby';
+import QuizPlay from './components/QuizPlay';
+import RoomResult from './components/RoomResult';
+
 import './App.css';
 
 function App() {
@@ -116,6 +124,32 @@ function App() {
         {
           path: 'notes',
           element: isAuthenticated ? <Notes /> : <Navigate to="/login" />,
+          loader: protectedLoader
+        },
+        // Multiplayer Room Routes
+        {
+          path: 'create-room',
+          element: isAuthenticated ? <CreateRoom /> : <Navigate to="/login" />,
+          loader: protectedLoader
+        },
+        {
+          path: 'join-room',
+          element: isAuthenticated ? <JoinRoom /> : <Navigate to="/login" />,
+          loader: protectedLoader
+        },
+        {
+          path: 'room/:roomCode',
+          element: isAuthenticated ? <RoomLobby /> : <Navigate to="/login" />,
+          loader: protectedLoader
+        },
+        {
+          path: 'quiz/:roomCode',
+          element: isAuthenticated ? <QuizPlay /> : <Navigate to="/login" />,
+          loader: protectedLoader
+        },
+        {
+          path: 'result/:roomCode',
+          element: isAuthenticated ? <RoomResult /> : <Navigate to="/login" />,
           loader: protectedLoader
         }
       ]

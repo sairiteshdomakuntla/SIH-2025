@@ -10,6 +10,7 @@ const profileRoutes = require("./routes/profileRoutes");
 const simulationRoutes = require("./routes/simulationRoutes");
 const geminiRoutes = require("./routes/geminiRoutes");
 const communityRoutes = require("./routes/communityRoutes");
+const roomRoutes = require("./routes/roomRoutes");
 const SocketHandler = require("./socket/socketHandler");
 const dailyQuestionRoutes = require('./routes/dailyQuestionRoutes');
 const cronService = require('./services/cronService');
@@ -23,7 +24,11 @@ const app = express();
 const server = http.createServer(app);
 const io = socketIo(server, {
   cors: {
-    origin: process.env.CLIENT_URL || "http://localhost:3000",
+    origin: [
+      process.env.CLIENT_URL || "http://localhost:3000",
+      "http://localhost:5173",  // Vite default port
+      "http://localhost:3000"   // React default port
+    ],
     methods: ["GET", "POST"],
     credentials: true
   }
@@ -56,6 +61,7 @@ app.use("/api/gemini", geminiRoutes);
 app.use("/api/community", communityRoutes);
 app.use('/api/daily', dailyQuestionRoutes);
 app.use('/api/notes', noteRoutes);
+app.use('/api/rooms', roomRoutes);
 // Start server
 server.listen(PORT, () => {
   console.log(`🚀 Server running on http://localhost:${PORT}`);

@@ -1,40 +1,48 @@
 const mongoose = require('mongoose');
+const { v4: uuidv4 } = require('uuid');
 
-const roomSchema = new mongoose.Schema({
-  roomId: {
-    type: String,
-    required: true,
-    unique: true,
-    index: true
-  },
-  name: {
-    type: String,
-    required: true,
-    trim: true,
-    maxlength: 50
-  },
-  subject: {
-    type: String,
-    required: true,
-    enum: ['Mathematics', 'Physics', 'Chemistry', 'Biology', 'English', 'History', 'Geography', 'General']
-  },
-  description: {
-    type: String,
-    default: '',
-    maxlength: 200
-  },
-  activeUsers: [{
-    type: mongoose.Schema.Types.ObjectId,
-    ref: 'User'
-  }],
-  totalMessages: {
-    type: Number,
-    default: 0
-  },
-  createdBy: {
+// Player subdocument schema
+const playerSchema = new mongoose.Schema({
+  userId: {
     type: mongoose.Schema.Types.ObjectId,
     ref: 'User',
     required: true
+  },
+  username: {
+    type: String,
+    required: true
+  },
+  car: {
+    type: String,
+    default: 'default'
+  },
+  ready: {
+    type: Boolean,
+    default: false
+  },
+  score: {
+    type: Number,
+    default: 0
+  },
+  timeTaken: {
+    type: Number,
+    default: 0
+  }
+}, { _id: true });
+
+// Room schema
+const roomSchema = new mongoose.Schema({
+  // For community chat rooms
+  roomId: {
+    type: String,
+    unique: true,
+    sparse: true  // Allows multiple null values
+  },
+  name: {
+    type: String
+  },
+  description: {
+    type: String
   },
   isPrivate: {
     type: Boolean,
@@ -42,37 +50,76 @@ const roomSchema = new mongoose.Schema({
   },
   maxUsers: {
     type: Number,
-    default: 50,
-    min: 10,
-    max: 100
+    default: 50
   },
-  tags: [{
-    type: String,
-    trim: true
+  createdBy: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'User'
+  },
+  activeUsers: [{
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'User'
   }],
-  rules: {
+  
+  // For quiz game rooms
+  roomCode: {
     type: String,
-    default: 'Be respectful and help each other learn!'
+    unique: true,
+    sparse: true  // Allows multiple null values
   },
-  createdAt: {
-    type: Date,
-    default: Date.now
+  code: {
+    type: String,
+    unique: true,
+    sparse: true  // Alternative field name for compatibility
   },
-  updatedAt: {
-    type: Date,
-    default: Date.now
+  capacity: {
+    type: Number,
+    default: 2
+  },
+  status: {
+    type: String,
+    enum: ['waiting', 'active', 'completed'],
+    default: 'waiting'
+  },
+  players: [playerSchema],
+  participants: [{
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'User'
+  }],
+  quizId: {
+    type: String  // Changed from ObjectId to String for now
+  },
+  subject: {
+    type: String
+  },
+  difficulty: {
+    type: String
+  },
+  winner: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'User'
   }
+}, {
+  timestamps: true
 });
 
-// Update the updatedAt field before saving
+// Pre-save hook to ensure proper IDs are generated
 roomSchema.pre('save', function(next) {
-  this.updatedAt = Date.now();
+  // For quiz rooms - generate roomCode if missing
+  if (!this.roomCode && !this.roomId) {
+    this.roomCode = uuidv4();
+  }
+  if (!this.code && this.roomCode) {
+    this.code = this.roomCode; // Use same code for both fields
+  }
   next();
 });
 
 // Index for efficient querying
-roomSchema.index({ subject: 1, isPrivate: 1 });
-roomSchema.index({ createdBy: 1 });
-roomSchema.index({ createdAt: -1 });
+roomSchema.index({ roomId: 1 });  // For community rooms
+roomSchema.index({ roomCode: 1 }); // For quiz rooms
+roomSchema.index({ status: 1 });
+roomSchema.index({ subject: 1 });
+roomSchema.index({ subject: 1, isPrivate: 1 }); // For community room filtering
 
 module.exports = mongoose.model('Room', roomSchema);

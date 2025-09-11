@@ -2,7 +2,7 @@ import axios from 'axios';
 
 // Create axios instance with default configuration
 const api = axios.create({
-  baseURL: import.meta.env.VITE_BACKEND_URL || 'http://localhost:3000',
+  baseURL: import.meta.env.VITE_BACKEND_URL || 'http://localhost:5000',
   timeout: 60000, // 1 minute default timeout for regular requests
   headers: {
     'Content-Type': 'application/json',
@@ -13,7 +13,7 @@ const api = axios.create({
 
 // Create separate instance for animation requests with longer timeout
 const animationApi = axios.create({
-  baseURL: import.meta.env.VITE_BACKEND_URL || 'http://localhost:3000',
+  baseURL: import.meta.env.VITE_BACKEND_URL || 'http://localhost:5000',
   timeout: 150000, // 2.5 minutes for animation requests
   headers: {
     'Content-Type': 'application/json',
