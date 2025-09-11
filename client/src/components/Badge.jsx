@@ -14,7 +14,9 @@ const Badge = ({ badge, size = 'md', showProgress = false }) => {
       indigo: isEarned ? 'from-indigo-500 to-indigo-600 border-indigo-400' : 'from-gray-600 to-gray-700 border-gray-500',
       emerald: isEarned ? 'from-emerald-500 to-emerald-600 border-emerald-400' : 'from-gray-600 to-gray-700 border-gray-500',
       teal: isEarned ? 'from-teal-500 to-teal-600 border-teal-400' : 'from-gray-600 to-gray-700 border-gray-500',
-      gold: isEarned ? 'from-amber-500 to-yellow-500 border-amber-400' : 'from-gray-600 to-gray-700 border-gray-500'
+      gold: isEarned ? 'from-amber-500 to-yellow-500 border-amber-400' : 'from-gray-600 to-gray-700 border-gray-500',
+      amber: isEarned ? 'from-amber-500 to-amber-600 border-amber-400' : 'from-gray-600 to-gray-700 border-gray-500',
+      gray: isEarned ? 'from-gray-400 to-gray-500 border-gray-300' : 'from-gray-600 to-gray-700 border-gray-500'
     };
     return baseColors[color] || baseColors.blue;
   };

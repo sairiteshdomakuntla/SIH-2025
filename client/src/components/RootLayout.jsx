@@ -2,8 +2,12 @@ import React from 'react';
 import { Outlet } from 'react-router-dom';
 import Header from './Header';
 import Footer from './Footer';
+import XPNotification from './XPNotification';
+import { useSocket } from '../context/SocketContext';
 
 const RootLayout = () => {
+  const { xpNotification, clearXpNotification } = useSocket();
+
   return (
     <div className="min-h-screen flex flex-col bg-gradient-to-br from-black via-gray-900 to-black">
       {/* Header */}
@@ -16,6 +20,12 @@ const RootLayout = () => {
       
       {/* Footer */}
       <Footer />
+      
+      {/* XP Notification */}
+      <XPNotification 
+        notification={xpNotification} 
+        onClose={clearXpNotification}
+      />
     </div>
   );
 };

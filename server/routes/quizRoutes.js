@@ -2,6 +2,7 @@ const express = require("express");
 const quizService = require("../services/quizService");
 const authenticateToken = require("../middleware/authMiddleware");
 const badgeService = require('../services/badgeService');
+const xpService = require('../services/xpService');
 
 const router = express.Router();
 
@@ -115,7 +116,6 @@ router.post('/submit', authenticateToken, async (req, res) => {
     
     // Update quiz-related stats
     user.completedQuizzes = (user.completedQuizzes || 0) + 1;
-    user.points = (user.points || 0) + (correctAnswers * 10);
     user.highestScore = Math.max(user.highestScore || 0, score);
     
     // Update fastest time (only if quiz completed successfully)
@@ -144,10 +144,10 @@ router.post('/submit', authenticateToken, async (req, res) => {
     const totalScore = user.quizHistory.reduce((sum, quiz) => sum + quiz.score, 0);
     user.averageScore = Math.round(totalScore / user.quizHistory.length);
     
-    // Update level based on points
-    user.level = Math.floor((user.points || 0) / 200) + 1;
-    
     await user.save();
+
+    // Award XP using new XP service
+    const xpResult = await xpService.awardQuizXP(req.user.id, score, totalQuestions);
     
     // Check and award badges
     const newBadges = await badgeService.checkAndAwardBadges(req.user.id);
@@ -158,7 +158,10 @@ router.post('/submit', authenticateToken, async (req, res) => {
       score,
       correctAnswers,
       totalQuestions,
-      newBadges // Return newly earned badges
+      xpAwarded: xpResult.xpAwarded || 0,
+      levelInfo: xpResult.levelInfo,
+      leveledUp: xpResult.leveledUp || false,
+      newBadges: newBadges || []
     });
   } catch (error) {
     console.error("Quiz submission error:", error);

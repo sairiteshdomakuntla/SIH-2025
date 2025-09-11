@@ -56,6 +56,8 @@ app.use("/api/gemini", geminiRoutes);
 app.use("/api/community", communityRoutes);
 app.use('/api/daily', dailyQuestionRoutes);
 app.use('/api/notes', noteRoutes);
+app.use('/api/xp', require('./routes/xpRoutes'));
+
 // Start server
 server.listen(PORT, () => {
   console.log(`🚀 Server running on http://localhost:${PORT}`);

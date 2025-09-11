@@ -1,6 +1,8 @@
 const express = require('express');
 const Note = require('../models/Note');
 const authenticateToken = require("../middleware/authMiddleware");
+const xpService = require('../services/xpService');
+const badgeService = require('../services/badgeService');
 
 const router = express.Router();
 
@@ -101,7 +103,21 @@ router.post('/', authenticateToken, async (req, res) => {
     });
 
     await note.save();
-    res.status(201).json({ success: true, note });
+    
+    // Award XP for writing a note
+    const xpResult = await xpService.awardXP(req.user.userId, 'note_written');
+    
+    // Check for new badges
+    const newBadges = await badgeService.checkAndAwardBadges(req.user.userId);
+
+    res.status(201).json({ 
+      success: true, 
+      note,
+      xpAwarded: xpResult.xpAwarded || 0,
+      levelInfo: xpResult.levelInfo,
+      leveledUp: xpResult.leveledUp || false,
+      newBadges: newBadges || []
+    });
   } catch (error) {
     console.error('Error creating note:', error);
     res.status(500).json({ success: false, message: 'Failed to create note' });

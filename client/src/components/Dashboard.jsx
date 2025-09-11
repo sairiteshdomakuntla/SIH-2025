@@ -1,7 +1,8 @@
 import React from 'react';
 import { useAuth } from '../context/AuthContext';
-import { Trophy, Star, BookOpen, Target, Crown, Zap, Brain, Beaker, Flame, FileText, Sparkles, Users, TrendingUp } from 'lucide-react';
+import { Trophy, Star, BookOpen, Target, Crown, Zap, Brain, Beaker, Flame, FileText, Sparkles, Users, TrendingUp, Award } from 'lucide-react';
 import AutoText from './AutoText';
+import XPDisplay from './XPDisplay';
 import { Link, useNavigate } from 'react-router-dom';
 
 const Dashboard = () => {
@@ -243,42 +244,32 @@ const Dashboard = () => {
             </div>
           </div>
 
-          {/* Achievements & Daily Challenge */}
+          {/* XP Display & Quick Actions */}
           <div className="space-y-6">
-            {/* Achievements */}
-            <div className="backdrop-blur-xl bg-black/40 border border-purple-500/30 rounded-3xl p-6 shadow-2xl relative overflow-hidden">
-              <div className="flex items-center space-x-3 mb-4">
-                <div className="bg-gradient-to-r from-yellow-500 to-orange-500 p-2 rounded-lg shadow-lg">
-                  <Trophy className="w-5 h-5 text-white" />
-                </div>
-                <h2 className="text-xl font-bold text-white">
-                  <AutoText>Recent Achievements</AutoText>
-                </h2>
-              </div>
-              <div className="space-y-3">
-                <div className="flex items-center space-x-3 p-3 bg-gradient-to-r from-yellow-500/20 to-orange-500/20 border border-yellow-500/30 rounded-lg backdrop-blur-sm">
-                  <Trophy className="h-6 w-6 text-yellow-400" />
-                  <div>
-                    <p className="font-semibold text-white">
-                      <AutoText>First Quest!</AutoText>
-                    </p>
-                    <p className="text-sm text-white/70">
-                      <AutoText>Completed first lesson</AutoText>
-                    </p>
+            {/* XP Display */}
+            <XPDisplay userId={user?.id} showDetails={true} />
+
+            {/* Quick Navigation */}
+            <div className="backdrop-blur-xl bg-black/40 border border-purple-500/30 rounded-3xl p-6 shadow-2xl relative overflow-hidden group hover:border-purple-400/50 transition-all duration-300">
+              <div className="flex items-center justify-between mb-4">
+                <div className="flex items-center space-x-3">
+                  <div className="bg-gradient-to-r from-purple-500 to-pink-500 p-2 rounded-lg shadow-lg">
+                    <TrendingUp className="w-5 h-5 text-white" />
                   </div>
-                </div>
-                <div className="flex items-center space-x-3 p-3 bg-gradient-to-r from-purple-500/20 to-pink-500/20 border border-purple-500/30 rounded-lg backdrop-blur-sm">
-                  <Star className="h-6 w-6 text-purple-400" />
-                  <div>
-                    <p className="font-semibold text-white">
-                      <AutoText>Learning Streak</AutoText>
-                    </p>
-                    <p className="text-sm text-white/70">
-                      <AutoText>3 days in a row!</AutoText>
-                    </p>
-                  </div>
+                  <h3 className="text-xl font-bold text-white">
+                    <AutoText>Weekly Competition</AutoText>
+                  </h3>
                 </div>
               </div>
+              <p className="text-white/80 mb-4">
+                <AutoText>See how you rank against other learners this week!</AutoText>
+              </p>
+              <button 
+                onClick={() => navigate('/leaderboard')}
+                className="w-full bg-gradient-to-r from-purple-500 to-pink-500 text-white py-3 px-4 rounded-xl hover:from-purple-600 hover:to-pink-600 transition-all duration-300 font-medium shadow-lg hover:shadow-xl transform hover:scale-105"
+              >
+                <AutoText>View Leaderboard</AutoText>
+              </button>
             </div>
 
             {/* Daily Challenge */}
@@ -305,6 +296,29 @@ const Dashboard = () => {
                 className="w-full bg-gradient-to-r from-orange-500 to-red-500 text-white py-3 px-4 rounded-xl hover:from-orange-600 hover:to-red-600 transition-all duration-300 font-medium shadow-lg hover:shadow-xl transform hover:scale-105"
               >
                 <AutoText>Take Today's Challenge</AutoText>
+              </button>
+            </div>
+
+            {/* Badges */}
+            <div className="backdrop-blur-xl bg-black/40 border border-yellow-500/30 rounded-3xl p-6 shadow-2xl relative overflow-hidden group hover:border-yellow-400/50 transition-all duration-300">
+              <div className="flex items-center justify-between mb-4">
+                <div className="flex items-center space-x-3">
+                  <div className="bg-gradient-to-r from-yellow-500 to-orange-500 p-2 rounded-lg shadow-lg">
+                    <Award className="w-5 h-5 text-white" />
+                  </div>
+                  <h3 className="text-xl font-bold text-white">
+                    <AutoText>Badges & Achievements</AutoText>
+                  </h3>
+                </div>
+              </div>
+              <p className="text-white/80 mb-4">
+                <AutoText>Track your progress and unlock new badges!</AutoText>
+              </p>
+              <button 
+                onClick={() => navigate('/badges')}
+                className="w-full bg-gradient-to-r from-yellow-500 to-orange-500 text-white py-3 px-4 rounded-xl hover:from-yellow-600 hover:to-orange-600 transition-all duration-300 font-medium shadow-lg hover:shadow-xl transform hover:scale-105"
+              >
+                <AutoText>View Badges</AutoText>
               </button>
             </div>
 
