@@ -10,6 +10,8 @@ const profileRoutes = require("./routes/profileRoutes");
 const simulationRoutes = require("./routes/simulationRoutes");
 const communityRoutes = require("./routes/communityRoutes");
 const SocketHandler = require("./socket/socketHandler");
+const dailyQuestionRoutes = require('./routes/dailyQuestionRoutes');
+const cronService = require('./services/cronService');
 
 // Load environment variables
 dotenv.config();
@@ -52,4 +54,24 @@ app.use("/api/community", communityRoutes);
 // Start server
 server.listen(PORT, () => {
   console.log(`🚀 Server running on http://localhost:${PORT}`);
+});
+
+// Start cron jobs
+try {
+  cronService.startAllJobs();
+} catch (error) {
+  console.error('Error starting cron jobs:', error);
+}
+
+// Graceful shutdown
+process.on('SIGTERM', () => {
+  console.log('SIGTERM received');
+  cronService.stopAllJobs();
+  process.exit(0);
+});
+
+process.on('SIGINT', () => {
+  console.log('SIGINT received');
+  cronService.stopAllJobs();
+  process.exit(0);
 });

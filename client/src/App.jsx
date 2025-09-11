@@ -13,6 +13,7 @@ import Community from './components/Community';
 import QuizGenerator from './components/QuizGenerator';
 import Simulations from './components/Simulations';
 import ErrorPage from './components/ErrorPage';
+import DailyQuestion from './components/DailyQuestion';
 import './App.css';
 
 function App() {
