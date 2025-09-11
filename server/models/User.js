@@ -18,7 +18,23 @@ const userSchema = new mongoose.Schema({
   streak: { type: Number, default: 0 },
   avatar: { type: String, default: '' },
   createdAt: { type: Date, default: Date.now },
-  updatedAt: { type: Date, default: Date.now }
+  updatedAt: { type: Date, default: Date.now },
+
+  // Add these new fields for daily streak
+  currentStreak: {
+    type: Number,
+    default: 0
+  },
+  longestStreak: {
+    type: Number,
+    default: 0
+  },
+  lastDailySubmission: {
+    type: String,
+    default: null
+  },
+}, {
+  timestamps:true
 });
 
 // Update the updatedAt field before saving
