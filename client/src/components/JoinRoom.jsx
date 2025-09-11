@@ -30,8 +30,15 @@ const JoinRoom = () => {
     try {
       const response = await joinRoom(roomCode, 'default'); // Pass car type, userId comes from JWT token
       
-      // Navigate to room on success
-      navigate(`/room/${roomCode}`);
+      // Navigate to quiz generator with room data
+      navigate('/quiz-generator', { 
+        state: { 
+          roomCode: roomCode,
+          subject: response.subject || 'general',
+          difficulty: response.difficulty || 'medium',
+          isMultiplayer: true
+        }
+      });
     } catch (err) {
       console.error('Join room error:', err);
       

@@ -235,6 +235,8 @@ const completeRoom = async (req, res) => {
     const { score, timeTaken } = req.body;
     const userId = req.user.userId;
 
+    console.log(`Player ${userId} completing quiz with score: ${score}, time: ${timeTaken}`);
+
     // Validate input
     if (score === undefined || timeTaken === undefined) {
       return res.status(400).json({
@@ -244,12 +246,15 @@ const completeRoom = async (req, res) => {
     }
 
     // Find room
-    const room = await Room.findOne({ roomCode });
+    let room = await Room.findOne({ roomCode });
     if (!room) {
-      return res.status(404).json({
-        success: false,
-        message: 'Room not found'
-      });
+      room = await Room.findOne({ code: roomCode });
+      if (!room) {
+        return res.status(404).json({
+          success: false,
+          message: 'Room not found'
+        });
+      }
     }
 
     // Find player in room
@@ -261,38 +266,93 @@ const completeRoom = async (req, res) => {
       });
     }
 
-    // Update player score and time
+    // Update player score and completion status
     player.score = score;
     player.timeTaken = timeTaken;
-
-    // Check if all players have finished (score > 0 means finished)
-    const allFinished = room.players.every(p => p.score > 0);
-    
-    if (allFinished) {
-      room.status = 'completed';
-      
-      // Determine winner: highest score wins, if tie then fastest time wins
-      let winner = room.players[0];
-      for (let i = 1; i < room.players.length; i++) {
-        const currentPlayer = room.players[i];
-        if (currentPlayer.score > winner.score || 
-            (currentPlayer.score === winner.score && currentPlayer.timeTaken < winner.timeTaken)) {
-          winner = currentPlayer;
-        }
-      }
-      
-      room.winner = winner.userId;
-    }
+    player.hasFinished = true;
+    player.finishedAt = new Date();
 
     await room.save();
 
-    return res.status(200).json({
-      success: true,
-      message: 'Room completion updated',
-      room,
-      allFinished,
-      winner: allFinished ? room.winner : null
-    });
+    // Check if all players have finished
+    const allFinished = room.players.every(p => p.hasFinished);
+    console.log(`All players finished: ${allFinished}`);
+    
+    if (allFinished) {
+      // Determine winner: highest score wins, if tie then fastest time wins
+      const sortedPlayers = room.players.sort((a, b) => {
+        if (a.score !== b.score) {
+          return b.score - a.score; // Higher score first
+        }
+        return a.timeTaken - b.timeTaken; // Faster time first
+      });
+
+      const winner = sortedPlayers[0];
+      room.winner = winner.userId;
+      room.status = 'completed';
+      room.quizEndedAt = new Date();
+      
+      await room.save();
+
+      console.log(`Winner determined: ${winner.username} with score ${winner.score}`);
+
+      // Emit to all players in room via socket
+      const io = req.app.get('io');
+      if (io) {
+        io.to(roomCode).emit('quizCompleted', {
+          winner: {
+            userId: winner.userId,
+            username: winner.username,
+            score: winner.score,
+            timeTaken: winner.timeTaken
+          },
+          results: room.players.map(p => ({
+            userId: p.userId,
+            username: p.username,
+            score: p.score,
+            timeTaken: p.timeTaken
+          })),
+          room: room
+        });
+      }
+
+      return res.status(200).json({
+        success: true,
+        message: 'Quiz completed',
+        gameCompleted: true,
+        winner: {
+          userId: winner.userId,
+          username: winner.username,
+          score: winner.score,
+          timeTaken: winner.timeTaken
+        },
+        results: room.players.map(p => ({
+          userId: p.userId,
+          username: p.username,
+          score: p.score,
+          timeTaken: p.timeTaken
+        }))
+      });
+    } else {
+      // Emit to room that this player finished
+      const io = req.app.get('io');
+      if (io) {
+        io.to(roomCode).emit('playerFinished', {
+          userId: player.userId,
+          username: player.username,
+          score: player.score,
+          timeTaken: player.timeTaken,
+          waitingForOthers: true
+        });
+      }
+
+      return res.status(200).json({
+        success: true,
+        message: 'Your result submitted. Waiting for other players...',
+        gameCompleted: false,
+        waitingForOthers: true
+      });
+    }
 
   } catch (error) {
     console.error('Complete room error:', error);

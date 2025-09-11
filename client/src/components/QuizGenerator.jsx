@@ -1,6 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '../context/AuthContext';
-import { Brain, Sparkles, Trophy, BookOpen, Zap, Target, Clock, CheckCircle, XCircle } from 'lucide-react';
+import { useSocket } from '../context/SocketContext';
+import { useLocation, useNavigate } from 'react-router-dom';
+import { Brain, Sparkles, Trophy, BookOpen, Zap, Target, Clock, CheckCircle, XCircle, Users, Wifi } from 'lucide-react';
 
 const QuizGenerator = () => {
   const [quiz, setQuiz] = useState(null);
@@ -21,7 +23,17 @@ const QuizGenerator = () => {
   const [quizStarted, setQuizStarted] = useState(false);
   const [finalResults, setFinalResults] = useState(null);
 
+  // Multiplayer room state
+  const [isMultiplayer, setIsMultiplayer] = useState(false);
+  const [roomData, setRoomData] = useState(null);
+  const [waitingForOpponent, setWaitingForOpponent] = useState(false);
+  const [opponentProgress, setOpponentProgress] = useState(null);
+  const [multiplayerResults, setMultiplayerResults] = useState(null);
+
   const { user } = useAuth();
+  const { socket } = useSocket();
+  const location = useLocation();
+  const navigate = useNavigate();
   const API_URL = import.meta.env.VITE_BACKEND_URL;
 
   const subjects = [
@@ -55,6 +67,88 @@ const QuizGenerator = () => {
     }
     return () => clearInterval(timer);
   }, [quizStarted, timeLeft, showResult]);
+
+  // Multiplayer initialization effect
+  useEffect(() => {
+    // Check if coming from a room
+    if (location.state?.roomCode) {
+      setIsMultiplayer(true);
+      setRoomData(location.state);
+      setQuizPreferences({
+        subject: location.state.subject,
+        difficulty: location.state.difficulty || 'medium'
+      });
+      
+      // Join quiz room via socket
+      if (socket) {
+        socket.emit('join_quiz_room', { roomCode: location.state.roomCode });
+      }
+    }
+  }, [location.state, socket]);
+
+  // Socket event listeners for multiplayer
+  useEffect(() => {
+    if (!socket || !isMultiplayer) return;
+
+    const handleQuizStarted = ({ roomCode, subject, startTime }) => {
+      console.log('Quiz started for room:', roomCode);
+      generateQuiz();
+    };
+
+    const handleQuizStarting = ({ message, countdown }) => {
+      console.log('Quiz starting:', message);
+      // You could add a countdown UI here if needed
+    };
+
+    const handlePlayerAnswered = ({ userId, questionIndex, playerName }) => {
+      setOpponentProgress(prev => ({
+        ...prev,
+        currentQuestion: questionIndex + 1,
+        playerName
+      }));
+    };
+
+    const handlePlayerFinished = ({ userId, playerName, finishedAt }) => {
+      if (userId !== user._id) {
+        setOpponentProgress(prev => ({
+          ...prev,
+          finished: true,
+          finishedAt,
+          playerName
+        }));
+      }
+    };
+
+    const handleQuizCompleted = ({ winner, results, completedAt }) => {
+      setMultiplayerResults({
+        winner,
+        results,
+        completedAt
+      });
+      setShowResult(true);
+      setQuizStarted(false);
+    };
+
+    const handleError = ({ message }) => {
+      alert(message);
+    };
+
+    socket.on('quiz_starting', handleQuizStarting);
+    socket.on('quiz_started', handleQuizStarted);
+    socket.on('player_answered', handlePlayerAnswered);
+    socket.on('player_finished', handlePlayerFinished);
+    socket.on('quiz_completed', handleQuizCompleted);
+    socket.on('error', handleError);
+
+    return () => {
+      socket.off('quiz_starting', handleQuizStarting);
+      socket.off('quiz_started', handleQuizStarted);
+      socket.off('player_answered', handlePlayerAnswered);
+      socket.off('player_finished', handlePlayerFinished);
+      socket.off('quiz_completed', handleQuizCompleted);
+      socket.off('error', handleError);
+    };
+  }, [socket, isMultiplayer, user._id]);
 
   const formatTime = (seconds) => {
     const minutes = Math.floor(seconds / 60);
@@ -127,6 +221,17 @@ const QuizGenerator = () => {
     const newAnswers = [...userAnswers];
     newAnswers[currentQuestionIndex] = answer;
     setUserAnswers(newAnswers);
+
+    // Emit answer to multiplayer room
+    if (isMultiplayer && socket && roomData) {
+      const isCorrect = answer === quiz[currentQuestionIndex].answer;
+      socket.emit('quiz_answer_submitted', {
+        roomCode: roomData.roomCode,
+        questionIndex: currentQuestionIndex,
+        answer,
+        isCorrect
+      });
+    }
   };
 
   const nextQuestion = () => {
@@ -168,16 +273,31 @@ const QuizGenerator = () => {
     const score = Math.round((correctAnswers / quiz.length) * 100);
     const timeTaken = 600 - timeLeft;
 
-    setFinalResults({
+    const quizResults = {
       score,
       correctAnswers,
       totalQuestions: quiz.length,
       timeTaken,
       timeUp,
       results
-    });
-    
-    setShowResult(true);
+    };
+
+    if (isMultiplayer && socket && roomData) {
+      // Emit completion to multiplayer room
+      socket.emit('player_finished_quiz', {
+        roomCode: roomData.roomCode,
+        finalScore: correctAnswers,
+        timeTaken,
+        answers: userAnswers
+      });
+      
+      // Show waiting message
+      setWaitingForOpponent(true);
+    } else {
+      // Single player mode - show results immediately
+      setFinalResults(quizResults);
+      setShowResult(true);
+    }
   };
 
   const resetQuiz = () => {
@@ -234,15 +354,86 @@ const QuizGenerator = () => {
           </div>
         </div>
         <h1 className="text-3xl font-bold bg-gradient-to-r from-white to-purple-200 bg-clip-text text-transparent mb-2">
-          AI Quiz Generator
+          {isMultiplayer ? 'Multiplayer Quiz Battle' : 'AI Quiz Generator'}
         </h1>
         <p className="text-white/80 text-lg">
-          10 questions • 10 minutes • Personalized AI quizzes
+          {isMultiplayer 
+            ? `Room: ${roomData?.roomCode} • ${roomData?.subject} • Real-time battle`
+            : '10 questions • 10 minutes • Personalized AI quizzes'
+          }
         </p>
+        {isMultiplayer && (
+          <div className="flex items-center justify-center mt-2 text-sm text-white/60">
+            <Users className="w-4 h-4 mr-1" />
+            <span>Multiplayer Mode</span>
+            <Wifi className="w-4 h-4 ml-2" />
+          </div>
+        )}
       </div>
 
+      {/* Waiting for opponent (multiplayer) */}
+      {waitingForOpponent && !multiplayerResults && (
+        <div className="bg-white/10 backdrop-blur-sm rounded-3xl p-8 text-center mb-8">
+          <div className="animate-pulse mb-4">
+            <Clock className="w-12 h-12 text-white/60 mx-auto" />
+          </div>
+          <h3 className="text-xl font-bold text-white mb-2">Waiting for opponent to finish...</h3>
+          <p className="text-white/80 mb-4">You've completed the quiz! Calculating results...</p>
+          {opponentProgress && (
+            <div className="text-sm text-white/60">
+              <p>{opponentProgress.playerName} {opponentProgress.finished ? 'has finished!' : `is on question ${opponentProgress.currentQuestion || 1}`}</p>
+            </div>
+          )}
+        </div>
+      )}
+
+      {/* Multiplayer Results */}
+      {multiplayerResults && (
+        <div className="bg-white/10 backdrop-blur-sm rounded-3xl p-8 text-center mb-8">
+          <div className="mb-6">
+            <Trophy className="w-16 h-16 text-yellow-400 mx-auto mb-4" />
+            <h2 className="text-3xl font-bold text-white mb-2">Battle Results</h2>
+          </div>
+          
+          <div className="grid md:grid-cols-2 gap-6 mb-6">
+            {multiplayerResults.results.map((player, index) => (
+              <div 
+                key={player.userId}
+                className={`p-6 rounded-2xl border-2 ${
+                  player.isWinner 
+                    ? 'bg-gradient-to-br from-yellow-500/20 to-orange-500/20 border-yellow-400' 
+                    : 'bg-white/5 border-white/20'
+                }`}
+              >
+                {player.isWinner && (
+                  <div className="text-yellow-400 mb-2">
+                    <Trophy className="w-6 h-6 mx-auto" />
+                  </div>
+                )}
+                <h3 className="text-xl font-bold text-white mb-2">{player.name}</h3>
+                <div className="space-y-2 text-sm">
+                  <p className="text-white/80">Score: <span className="font-bold text-white">{player.score}/{player.correctAnswers * 10}</span></p>
+                  <p className="text-white/80">Correct: <span className="font-bold text-white">{player.correctAnswers}/10</span></p>
+                  <p className="text-white/80">Time: <span className="font-bold text-white">{formatTime(player.timeTaken)}</span></p>
+                </div>
+                {player.isWinner && (
+                  <div className="mt-2 text-yellow-400 font-bold">WINNER! 🎉</div>
+                )}
+              </div>
+            ))}
+          </div>
+          
+          <button
+            onClick={() => navigate('/community')}
+            className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white font-bold py-3 px-6 rounded-xl transition-all duration-300"
+          >
+            Return to Community
+          </button>
+        </div>
+      )}
+
       {/* Quiz Preference Form */}
-      {!quiz && !showQuizForm && (
+      {!quiz && !showQuizForm && !isMultiplayer && (
         <div className="text-center mb-8">
           <div className="space-y-4 mb-6">
             <button
@@ -395,6 +586,54 @@ const QuizGenerator = () => {
         </div>
       )}
 
+      {/* Multiplayer Waiting Room */}
+      {isMultiplayer && !quiz && !quizStarted && !multiplayerResults && (
+        <div className="bg-white/10 backdrop-blur-sm rounded-3xl p-8 text-center mb-8">
+          <div className="mb-6">
+            <Users className="w-16 h-16 text-white/60 mx-auto mb-4" />
+            <h2 className="text-2xl font-bold text-white mb-2">Quiz Room</h2>
+            <p className="text-white/80">Waiting for all players to be ready...</p>
+          </div>
+          
+          <div className="bg-white/5 rounded-2xl p-6 mb-6">
+            <h3 className="text-lg font-bold text-white mb-4">Room Details</h3>
+            <div className="grid grid-cols-2 gap-4 text-sm">
+              <div>
+                <p className="text-white/60">Room Code:</p>
+                <p className="text-white font-bold">{roomData?.roomCode}</p>
+              </div>
+              <div>
+                <p className="text-white/60">Subject:</p>
+                <p className="text-white font-bold">{roomData?.subject}</p>
+              </div>
+            </div>
+          </div>
+
+          <button
+            onClick={() => {
+              if (socket && roomData) {
+                socket.emit('player_ready', { roomCode: roomData.roomCode });
+              }
+            }}
+            className="bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-700 hover:to-emerald-700 text-white font-bold py-4 px-8 rounded-2xl transition-all duration-300 transform hover:scale-105 shadow-lg"
+          >
+            <div className="flex items-center justify-center space-x-2">
+              <CheckCircle className="w-5 h-5" />
+              <span>Ready to Start!</span>
+            </div>
+          </button>
+          
+          <div className="mt-4">
+            <button
+              onClick={() => navigate('/community')}
+              className="text-white/60 hover:text-white transition-colors duration-300"
+            >
+              Leave Room
+            </button>
+          </div>
+        </div>
+      )}
+
       {/* Quiz Display */}
       {quiz && !showResult && (
         <div className="backdrop-blur-xl bg-black/40 border border-purple-500/30 rounded-3xl p-8 shadow-2xl">
@@ -434,6 +673,26 @@ const QuizGenerator = () => {
               ></div>
             </div>
           </div>
+
+          {/* Multiplayer Opponent Progress */}
+          {isMultiplayer && opponentProgress && (
+            <div className="bg-white/5 rounded-xl p-4 mb-6">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center space-x-3">
+                  <Users className="w-5 h-5 text-white/60" />
+                  <span className="text-white/80 text-sm">
+                    {opponentProgress.playerName}
+                  </span>
+                </div>
+                <div className="text-sm text-white/60">
+                  {opponentProgress.finished 
+                    ? 'Finished!' 
+                    : `Question ${opponentProgress.currentQuestion || 1}/10`
+                  }
+                </div>
+              </div>
+            </div>
+          )}
 
           {/* Question */}
           <div className="text-center mb-8">

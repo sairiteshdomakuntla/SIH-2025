@@ -175,7 +175,14 @@ const CreateRoom = () => {
 
           <div className="flex gap-4 justify-center">
             <button
-              onClick={() => navigate(`/room/${createdRoom.roomCode}`)}
+              onClick={() => navigate('/quiz-generator', { 
+                state: { 
+                  roomCode: createdRoom.roomCode,
+                  subject: createdRoom.subject,
+                  difficulty: createdRoom.difficulty,
+                  isMultiplayer: true
+                }
+              })}
               className="px-6 py-3 bg-green-600 hover:bg-green-700 text-white rounded-xl font-semibold transition-colors"
             >
               🚀 Enter Room

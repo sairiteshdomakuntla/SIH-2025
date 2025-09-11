@@ -97,6 +97,11 @@ function App() {
           loader: protectedLoader
         },
         {
+          path: 'quiz-generator',
+          element: isAuthenticated ? <QuizGenerator /> : <Navigate to="/login" />,
+          loader: protectedLoader
+        },
+        {
           path: 'simulations',
           element: isAuthenticated ? <Simulations /> : <Navigate to="/login" />,
           loader: protectedLoader

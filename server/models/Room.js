@@ -27,6 +27,13 @@ const playerSchema = new mongoose.Schema({
   timeTaken: {
     type: Number,
     default: 0
+  },
+  hasFinished: {
+    type: Boolean,
+    default: false
+  },
+  finishedAt: {
+    type: Date
   }
 }, { _id: true });
 
@@ -78,7 +85,7 @@ const roomSchema = new mongoose.Schema({
   },
   status: {
     type: String,
-    enum: ['waiting', 'active', 'completed'],
+    enum: ['waiting', 'ready', 'active', 'completed'],
     default: 'waiting'
   },
   players: [playerSchema],
@@ -98,7 +105,19 @@ const roomSchema = new mongoose.Schema({
   winner: {
     type: mongoose.Schema.Types.ObjectId,
     ref: 'User'
-  }
+  },
+  quizStartedAt: {
+    type: Date
+  },
+  quizEndedAt: {
+    type: Date
+  },
+  questions: [{
+    question: String,
+    options: [String],
+    correctAnswer: Number,
+    explanation: String
+  }]
 }, {
   timestamps: true
 });

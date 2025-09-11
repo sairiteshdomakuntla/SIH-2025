@@ -44,6 +44,9 @@ connectDB();
 const socketHandler = new SocketHandler(io);
 socketHandler.initialize();
 
+// Make io available to route handlers
+app.set('io', io);
+
 // Middleware
 app.use(express.json());
 
