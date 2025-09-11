@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '../context/AuthContext';
 import { Brain, Sparkles, Trophy, BookOpen, Zap, Target, Clock, CheckCircle, XCircle } from 'lucide-react';
+import BadgeNotification from './BadgeNotification';
 
 const QuizGenerator = () => {
   const [quiz, setQuiz] = useState(null);
@@ -20,6 +21,7 @@ const QuizGenerator = () => {
   const [timeLeft, setTimeLeft] = useState(600); // 10 minutes = 600 seconds
   const [quizStarted, setQuizStarted] = useState(false);
   const [finalResults, setFinalResults] = useState(null);
+  const [newBadges, setNewBadges] = useState([]);
 
   const { user } = useAuth();
   const API_URL = import.meta.env.VITE_BACKEND_URL;
@@ -146,7 +148,7 @@ const QuizGenerator = () => {
     }
   };
 
-  const submitQuiz = (timeUp = false) => {
+  const submitQuiz = async (timeUp = false) => {
     setQuizStarted(false);
     
     // Calculate results
@@ -167,6 +169,34 @@ const QuizGenerator = () => {
 
     const score = Math.round((correctAnswers / quiz.length) * 100);
     const timeTaken = 600 - timeLeft;
+
+    try {
+      const token = localStorage.getItem('token');
+      const response = await fetch(`${API_URL}/api/quiz/submit`, {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          score,
+          correctAnswers,
+          totalQuestions: quiz.length,
+          timeTaken,
+          timeUp,
+          results,
+          subject: quiz[0]?.subject
+        })
+      });
+
+      const data = await response.json();
+      
+      if (data.success && data.newBadges && data.newBadges.length > 0) {
+        setNewBadges(data.newBadges);
+      }
+    } catch (error) {
+      console.error('Error submitting quiz:', error);
+    }
 
     setFinalResults({
       score,
@@ -225,22 +255,29 @@ const QuizGenerator = () => {
   };
 
   return (
-    <div className="min-h-full flex flex-col">
-      <div className="flex-1 max-w-4xl mx-auto p-6 w-full">
-        {/* Header */}
-        <div className="text-center mb-8">
-          <div className="flex justify-center mb-4">
-            <div className="bg-gradient-to-r from-purple-600 to-pink-600 p-4 rounded-full shadow-lg">
-              <Brain className="w-8 h-8 text-white" />
-            </div>
+    <div className="max-w-4xl mx-auto p-6">
+      {/* Badge Notifications */}
+      {newBadges.length > 0 && (
+        <BadgeNotification 
+          badges={newBadges} 
+          onClose={() => setNewBadges([])}
+        />
+      )}
+
+      {/* Header */}
+      <div className="text-center mb-8">
+        <div className="flex justify-center mb-4">
+          <div className="bg-gradient-to-r from-purple-600 to-pink-600 p-4 rounded-full shadow-lg">
+            <Brain className="w-8 h-8 text-white" />
           </div>
-          <h1 className="text-3xl font-bold bg-gradient-to-r from-white to-purple-200 bg-clip-text text-transparent mb-2">
-            AI Quiz Generator
-          </h1>
-          <p className="text-white/80 text-lg">
-            10 questions • 10 minutes • Personalized AI quizzes
-          </p>
         </div>
+        <h1 className="text-3xl font-bold bg-gradient-to-r from-white to-purple-200 bg-clip-text text-transparent mb-2">
+          AI Quiz Generator
+        </h1>
+        <p className="text-white/80 text-lg">
+          10 questions • 10 minutes • Personalized AI quizzes
+        </p>
+      </div>
 
       {/* Quiz Preference Form */}
       {!quiz && !showQuizForm && (
@@ -655,7 +692,7 @@ const QuizGenerator = () => {
         </div>
       )}
       </div>
-    </div>
+    // </div>
   );
 };
 

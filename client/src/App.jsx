@@ -18,6 +18,7 @@ import ErrorPage from './components/ErrorPage';
 import DailyQuestion from './components/DailyQuestion';
 import Notes from './components/Notes';
 import NoteView from './components/NoteView';
+import BadgesGrid from './components/BadgesGrid';
 import './App.css';
 
 function App() {
@@ -122,6 +123,11 @@ function App() {
         {
           path: 'note/:slug',
           element: isAuthenticated ? <NoteView /> : <Navigate to="/login" />,
+          loader: protectedLoader
+        },
+        {
+          path: 'badges',
+          element: isAuthenticated ? <BadgesGrid /> : <Navigate to="/login" />,
           loader: protectedLoader
         }
       ]
