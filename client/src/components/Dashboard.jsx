@@ -108,18 +108,22 @@ const Dashboard = () => {
                   <div className="p-2 bg-purple-100 rounded-lg">
                     <BookOpen className="h-6 w-6 text-purple-600" />
                   </div>
-                  <div>
-                    <h3 className="font-semibold text-gray-900">
-                      <AutoText>Mathematics Adventure</AutoText>
-                    </h3>
-                    <p className="text-sm text-gray-600">
-                      <AutoText>Continue with Chapter 5</AutoText>
-                    </p>
-                  </div>
+                <div>
+  <h3 className="font-semibold text-gray-900">
+    <AutoText>Learning Community</AutoText>
+  </h3>
+  <p className="text-sm text-gray-600">
+    <AutoText>Connect, chat, and grow with peers</AutoText>
+  </p>
+</div>
+
                 </div>
-                <button className="bg-purple-600 text-white px-4 py-2 rounded-lg hover:bg-purple-700 transition-colors">
-                  <AutoText>Continue</AutoText>
-                </button>
+              <Link
+  to="/community"
+  className="bg-purple-600 text-white px-4 py-2 rounded-lg hover:bg-purple-700 transition-colors inline-block"
+>
+  <AutoText>Continue</AutoText>
+</Link>
               </div>
               
               {/* AI Quiz Generator */}

@@ -8,9 +8,18 @@ const userSchema = new mongoose.Schema({
   grade: { type: String, required: true },
   interests: [String],
   bio: { type: String, default: '' },
-  level: { type: Number, default: 1 },
-  points: { type: Number, default: 0 },
-  achievements: { type: Number, default: 0 },
+  level: {
+    type: Number,
+    default: 1
+  },
+  points: {
+    type: Number,
+    default: 0
+  },
+  achievements: {
+    type: Number,
+    default: 0
+  },
   completedCourses: { type: Number, default: 0 },
   completedQuizzes: { type: Number, default: 0 },
   averageScore: { type: Number, default: 0 },

@@ -1,11 +1,15 @@
 import React, { useState, useEffect } from 'react';
 import { createBrowserRouter, RouterProvider, Navigate, redirect } from 'react-router-dom';
+
 import { AuthProvider } from './context/AuthContext';
+import { SocketProvider } from './context/SocketContext';
 import RootLayout from './components/RootLayout';
 import Login from './components/Login';
 import Register from './components/Register';
 import Dashboard from './components/Dashboard';
 import Profile from './components/Profile';
+import Community from './components/Community';
+
 import QuizGenerator from './components/QuizGenerator';
 import Simulations from './components/Simulations';
 import ErrorPage from './components/ErrorPage';
@@ -84,6 +88,11 @@ function App() {
           path: 'simulations',
           element: isAuthenticated ? <Simulations /> : <Navigate to="/login" />,
           loader: protectedLoader
+        },
+        {
+          path: 'community',
+          element: isAuthenticated ? <Community /> : <Navigate to="/login" />,
+          loader: protectedLoader
         }
       ]
     }
@@ -91,7 +100,9 @@ function App() {
 
   return (
     <AuthProvider>
-      <RouterProvider router={router} />
+      <SocketProvider>
+        <RouterProvider router={router} />
+      </SocketProvider>
     </AuthProvider>
   );
 }
