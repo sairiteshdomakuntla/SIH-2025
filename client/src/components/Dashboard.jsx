@@ -1,11 +1,12 @@
 import React from 'react';
 import { useAuth } from '../context/AuthContext';
-import { Trophy, Star, BookOpen, Target, Crown, Zap, Brain, Beaker } from 'lucide-react';
+import { Trophy, Star, BookOpen, Target, Crown, Zap, Brain, Beaker, Flame, FileText } from 'lucide-react';
 import AutoText from './AutoText';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 
 const Dashboard = () => {
   const { user } = useAuth();
+  const navigate = useNavigate();
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 p-6">
@@ -108,18 +109,22 @@ const Dashboard = () => {
                   <div className="p-2 bg-purple-100 rounded-lg">
                     <BookOpen className="h-6 w-6 text-purple-600" />
                   </div>
-                  <div>
-                    <h3 className="font-semibold text-gray-900">
-                      <AutoText>Mathematics Adventure</AutoText>
-                    </h3>
-                    <p className="text-sm text-gray-600">
-                      <AutoText>Continue with Chapter 5</AutoText>
-                    </p>
-                  </div>
+                <div>
+  <h3 className="font-semibold text-gray-900">
+    <AutoText>Learning Community</AutoText>
+  </h3>
+  <p className="text-sm text-gray-600">
+    <AutoText>Connect, chat, and grow with peers</AutoText>
+  </p>
+</div>
+
                 </div>
-                <button className="bg-purple-600 text-white px-4 py-2 rounded-lg hover:bg-purple-700 transition-colors">
-                  <AutoText>Continue</AutoText>
-                </button>
+              <Link
+  to="/community"
+  className="bg-purple-600 text-white px-4 py-2 rounded-lg hover:bg-purple-700 transition-colors inline-block"
+>
+  <AutoText>Continue</AutoText>
+</Link>
               </div>
               
               {/* AI Quiz Generator */}
@@ -185,6 +190,41 @@ const Dashboard = () => {
               </div>
             </div>
           </div>
+        </div>
+
+        {/* Daily Challenge Card */}
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+          <div className="bg-gradient-to-br from-orange-50 to-red-50 rounded-xl p-6 shadow-lg border border-orange-200">
+            <div className="flex items-center justify-between mb-4">
+              <h3 className="text-xl font-bold text-gray-900">Daily Challenge</h3>
+              <div className="flex items-center space-x-1 text-orange-600">
+                <Flame className="w-5 h-5" />
+                <span className="font-bold">{user?.currentStreak || 0}</span>
+              </div>
+            </div>
+            <p className="text-gray-600 mb-4">
+              Complete today's question to maintain your streak!
+            </p>
+            <button 
+              onClick={() => navigate('/daily-question')}
+              className="w-full bg-gradient-to-r from-orange-500 to-red-500 text-white py-2 px-4 rounded-lg hover:from-orange-600 hover:to-red-600 transition-all duration-300 font-medium"
+            >
+              Take Today's Challenge
+            </button>
+          </div>
+        </div>
+
+        {/* Add Notes button to navigation */}
+        <div className="mt-8">
+          <Link 
+            to="/notes" 
+            className="flex items-center space-x-3 p-4 bg-white/10 rounded-xl hover:bg-white/20 transition-all duration-300"
+          >
+            <FileText className="w-6 h-6 text-purple-400" />
+            <span className="text-white font-medium">
+              <AutoText>Notes</AutoText>
+            </span>
+          </Link>
         </div>
       </div>
     </div>

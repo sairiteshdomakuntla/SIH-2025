@@ -120,6 +120,45 @@ Example format:
   }
 
   /**
+   * Build quiz generation prompt for Gemini API to generate multiple questions
+   * @param {Object} preferences - User preferences
+   * @param {number} questionCount - Number of questions to generate (default: 10)
+   * @returns {string} Formatted prompt for Gemini API
+   */
+  buildMultipleQuizPrompt({ subject, classLevel, difficulty, location }, questionCount = 10) {
+    const locationContext = location.toLowerCase().includes('rural') || 
+                           location.toLowerCase().includes('village') ? 
+                           'rural/village' : 'urban';
+                           
+    return `Generate ${questionCount} multiple-choice quiz questions for subject=${subject}, class=${classLevel}, difficulty=${difficulty}. 
+The quiz should be suitable for ${locationContext} students in ${location}. Each question should have 4 options and exactly 1 correct answer. 
+Make the questions practical and relevant to ${locationContext} contexts when possible.
+Ensure questions are diverse and cover different topics within the subject.
+Respond in strict JSON format as an array of question objects.
+Ensure the response is valid JSON without any markdown formatting or extra text.
+
+Format:
+[
+  {
+    "subject": "${subject}",
+    "classLevel": "${classLevel}",
+    "difficulty": "${difficulty}",
+    "question": "Question 1 here",
+    "options": ["Option A", "Option B", "Option C", "Option D"],
+    "answer": "Correct option text"
+  },
+  {
+    "subject": "${subject}",
+    "classLevel": "${classLevel}",
+    "difficulty": "${difficulty}",
+    "question": "Question 2 here",
+    "options": ["Option A", "Option B", "Option C", "Option D"],
+    "answer": "Correct option text"
+  }
+]`;
+  }
+
+  /**
    * Call Gemini API with retry logic and exponential backoff
    * @param {string} prompt - Quiz generation prompt
    * @returns {Promise<Object>} Raw API response
@@ -254,6 +293,102 @@ Example format:
   }
 
   /**
+   * Parse and validate multiple quiz questions from Gemini API response
+   * @param {Object} apiResponse - Raw Gemini API response
+   * @param {Object} preferences - User preferences for fallback
+   * @param {number} expectedCount - Expected number of questions
+   * @returns {Array} Array of parsed quiz objects
+   */
+  parseMultipleQuizResponse(apiResponse, preferences, expectedCount = 10) {
+    try {
+      // Extract text from Gemini response structure
+      const responseText = apiResponse?.candidates?.[0]?.content?.parts?.[0]?.text;
+      
+      if (!responseText) {
+        throw new Error("No response text from Gemini API");
+      }
+
+      // Clean the response text (remove markdown formatting if present)
+      const cleanedText = responseText
+        .replace(/```json\n?/g, '')
+        .replace(/```\n?/g, '')
+        .trim();
+
+      // Parse JSON
+      const quizData = JSON.parse(cleanedText);
+
+      // Validate that it's an array
+      if (!Array.isArray(quizData)) {
+        throw new Error("Response is not an array of questions");
+      }
+
+      const validQuestions = [];
+      const requiredFields = ['subject', 'classLevel', 'difficulty', 'question', 'options', 'answer'];
+
+      for (let i = 0; i < quizData.length; i++) {
+        const question = quizData[i];
+        
+        try {
+          // Validate required fields
+          for (const field of requiredFields) {
+            if (!question[field]) {
+              throw new Error(`Missing required field: ${field} in question ${i + 1}`);
+            }
+          }
+
+          // Validate options array
+          if (!Array.isArray(question.options) || question.options.length !== 4) {
+            throw new Error(`Options must be an array of exactly 4 items in question ${i + 1}`);
+          }
+
+          // Validate that answer is one of the options
+          if (!question.options.includes(question.answer)) {
+            throw new Error(`Answer must be one of the provided options in question ${i + 1}`);
+          }
+
+          validQuestions.push({
+            subject: question.subject || preferences.subject,
+            classLevel: question.classLevel || preferences.classLevel,
+            difficulty: question.difficulty || preferences.difficulty,
+            question: question.question,
+            options: question.options,
+            answer: question.answer,
+            generatedAt: new Date().toISOString()
+          });
+        } catch (questionError) {
+          console.warn(`Skipping invalid question ${i + 1}:`, questionError.message);
+        }
+      }
+
+      // If we don't have enough valid questions, fill with fallback questions
+      while (validQuestions.length < expectedCount) {
+        const fallbackQuestion = this.getFallbackQuiz(preferences);
+        validQuestions.push({
+          ...fallbackQuestion,
+          isFallback: true,
+          questionNumber: validQuestions.length + 1
+        });
+      }
+
+      return validQuestions.slice(0, expectedCount);
+
+    } catch (error) {
+      console.error("Failed to parse Gemini response:", error);
+      
+      // Return fallback questions if parsing fails
+      const fallbackQuestions = [];
+      for (let i = 0; i < expectedCount; i++) {
+        fallbackQuestions.push({
+          ...this.getFallbackQuiz(preferences),
+          isFallback: true,
+          questionNumber: i + 1
+        });
+      }
+      return fallbackQuestions;
+    }
+  }
+
+  /**
    * Provide fallback quiz if API fails
    * @param {Object} preferences - User preferences
    * @returns {Object} Fallback quiz object
@@ -345,6 +480,35 @@ Example format:
    */
   sleep(ms) {
     return new Promise(resolve => setTimeout(resolve, ms));
+  }
+
+  /**
+   * Generate multiple quiz questions in a single API call
+   * @param {Object} preferences - User preferences
+   * @param {number} questionCount - Number of questions to generate
+   * @returns {Promise<Array>} Array of quiz questions
+   */
+  async generateMultipleQuestions(preferences, questionCount = 10) {
+    try {
+      const prompt = this.buildMultipleQuizPrompt(preferences, questionCount);
+      const apiResponse = await this.callGeminiAPIWithRetry(prompt);
+      const questions = this.parseMultipleQuizResponse(apiResponse, preferences, questionCount);
+      
+      return questions;
+    } catch (error) {
+      console.error("Failed to generate multiple questions:", error);
+      
+      // Return fallback questions if API fails
+      const fallbackQuestions = [];
+      for (let i = 0; i < questionCount; i++) {
+        fallbackQuestions.push({
+          ...this.getFallbackQuiz(preferences),
+          isFallback: true,
+          questionNumber: i + 1
+        });
+      }
+      return fallbackQuestions;
+    }
   }
 }
 

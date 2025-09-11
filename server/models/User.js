@@ -8,9 +8,18 @@ const userSchema = new mongoose.Schema({
   grade: { type: String, required: true },
   interests: [String],
   bio: { type: String, default: '' },
-  level: { type: Number, default: 1 },
-  points: { type: Number, default: 0 },
-  achievements: { type: Number, default: 0 },
+  level: {
+    type: Number,
+    default: 1
+  },
+  points: {
+    type: Number,
+    default: 0
+  },
+  achievements: {
+    type: Number,
+    default: 0
+  },
   completedCourses: { type: Number, default: 0 },
   completedQuizzes: { type: Number, default: 0 },
   averageScore: { type: Number, default: 0 },
@@ -18,7 +27,23 @@ const userSchema = new mongoose.Schema({
   streak: { type: Number, default: 0 },
   avatar: { type: String, default: '' },
   createdAt: { type: Date, default: Date.now },
-  updatedAt: { type: Date, default: Date.now }
+  updatedAt: { type: Date, default: Date.now },
+
+  // Add these new fields for daily streak
+  currentStreak: {
+    type: Number,
+    default: 0
+  },
+  longestStreak: {
+    type: Number,
+    default: 0
+  },
+  lastDailySubmission: {
+    type: String,
+    default: null
+  },
+}, {
+  timestamps:true
 });
 
 // Update the updatedAt field before saving
