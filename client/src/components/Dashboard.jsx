@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { useAuth } from '../context/AuthContext';
 import { Trophy, Star, BookOpen, Target, Crown, Zap, Brain, Beaker, Flame, FileText, Sparkles, Users, TrendingUp, Award } from 'lucide-react';
 import AutoText from './AutoText';
@@ -6,8 +6,47 @@ import XPDisplay from './XPDisplay';
 import { Link, useNavigate } from 'react-router-dom';
 
 const Dashboard = () => {
-  const { user } = useAuth();
+  const { user, refreshUserData } = useAuth();
   const navigate = useNavigate();
+  const [streakData, setStreakData] = useState({
+    currentStreak: user?.currentStreak || user?.streak || 0,
+    longestStreak: user?.longestStreak || 0
+  });
+
+  // Refresh user data when component mounts and periodically
+  useEffect(() => {
+    const refreshData = async () => {
+      await refreshUserData();
+    };
+
+    // Refresh immediately
+    refreshData();
+
+    // Set up interval to refresh every 30 seconds
+    const interval = setInterval(refreshData, 30000);
+
+    // Listen for auth state changes
+    const handleAuthChange = () => {
+      refreshData();
+    };
+
+    window.addEventListener('authChange', handleAuthChange);
+
+    return () => {
+      clearInterval(interval);
+      window.removeEventListener('authChange', handleAuthChange);
+    };
+  }, [refreshUserData]);
+
+  // Update streak data when user data changes
+  useEffect(() => {
+    if (user) {
+      setStreakData({
+        currentStreak: user.currentStreak || user.streak || 0,
+        longestStreak: user.longestStreak || 0
+      });
+    }
+  }, [user]);
 
   return (
     <div className="w-full h-full flex items-center justify-center px-5 py-4 relative">
@@ -63,6 +102,14 @@ const Dashboard = () => {
                 </div>
                 <p className="text-sm font-bold text-white">
                   {user?.points || 0} <AutoText tag="span">XP</AutoText>
+                </p>
+              </div>
+              <div className="text-center backdrop-blur-sm bg-white/10 p-4 rounded-xl border border-orange-500/30">
+                <div className="flex items-center justify-center w-12 h-12 bg-gradient-to-r from-orange-400 to-red-400 rounded-full mb-2 mx-auto">
+                  <Flame className="h-6 w-6 text-white" />
+                </div>
+                <p className="text-sm font-bold text-white">
+                  {streakData.currentStreak} <AutoText tag="span">days</AutoText>
                 </p>
               </div>
             </div>
@@ -123,7 +170,7 @@ const Dashboard = () => {
                   <AutoText>Streak</AutoText>
                 </p>
                 <p className="text-2xl font-bold text-white">
-                  {user?.streak || 0} <AutoText tag="span">days</AutoText>
+                  {streakData.currentStreak} <AutoText tag="span">days</AutoText>
                 </p>
               </div>
             </div>
@@ -143,7 +190,7 @@ const Dashboard = () => {
               </h2>
             </div>
             <div className="space-y-4">
-              <div className="group p-6 bg-white/10 hover:bg-white/20 border border-purple-500/30 hover:border-purple-400/50 rounded-xl cursor-pointer transition-all duration-300 backdrop-blur-sm hover:scale-105 hover:shadow-xl">
+              <div className="group p-6 bg-white/10 hover:bg-white/20 border border-purple-500/30 hover:border-purple-400/50 rounded-xl cursor-pointer transition-all duration-300 backdrop-blur-sm hover:scale-102 hover:shadow-xl">
                 <div className="flex items-center justify-between">
                   <div className="flex items-center space-x-4">
                     <div className="bg-gradient-to-r from-purple-600 to-indigo-600 p-3 rounded-lg shadow-lg group-hover:scale-110 transition-transform duration-300">
@@ -168,7 +215,7 @@ const Dashboard = () => {
               </div>
               
               {/* AI Quiz Generator */}
-              <div className="group p-6 bg-white/10 hover:bg-white/20 border border-purple-500/30 hover:border-purple-400/50 rounded-xl cursor-pointer transition-all duration-300 backdrop-blur-sm hover:scale-105 hover:shadow-xl">
+              <div className="group p-6 bg-white/10 hover:bg-white/20 border border-purple-500/30 hover:border-purple-400/50 rounded-xl cursor-pointer transition-all duration-300 backdrop-blur-sm hover:scale-102 hover:shadow-xl">
                 <div className="flex items-center justify-between">
                   <div className="flex items-center space-x-4">
                     <div className="bg-gradient-to-r from-pink-600 to-purple-600 p-3 rounded-lg shadow-lg group-hover:scale-110 transition-transform duration-300">
@@ -193,7 +240,7 @@ const Dashboard = () => {
               </div>
 
               {/* Interactive Simulations */}
-              <div className="group p-6 bg-white/10 hover:bg-white/20 border border-purple-500/30 hover:border-purple-400/50 rounded-xl cursor-pointer transition-all duration-300 backdrop-blur-sm hover:scale-105 hover:shadow-xl">
+              <div className="group p-6 bg-white/10 hover:bg-white/20 border border-purple-500/30 hover:border-purple-400/50 rounded-xl cursor-pointer transition-all duration-300 backdrop-blur-sm hover:scale-102 hover:shadow-xl">
                 <div className="flex items-center justify-between">
                   <div className="flex items-center space-x-4">
                     <div className="bg-gradient-to-r from-blue-600 to-cyan-600 p-3 rounded-lg shadow-lg group-hover:scale-110 transition-transform duration-300">
@@ -218,7 +265,7 @@ const Dashboard = () => {
               </div>
 
               {/* AI Learning Assistant */}
-              <div className="group p-6 bg-white/10 hover:bg-white/20 border border-purple-500/30 hover:border-purple-400/50 rounded-xl cursor-pointer transition-all duration-300 backdrop-blur-sm hover:scale-105 hover:shadow-xl">
+              <div className="group p-6 bg-white/10 hover:bg-white/20 border border-purple-500/30 hover:border-purple-400/50 rounded-xl cursor-pointer transition-all duration-300 backdrop-blur-sm hover:scale-102 hover:shadow-xl">
                 <div className="flex items-center justify-between">
                   <div className="flex items-center space-x-4">
                     <div className="bg-gradient-to-r from-green-600 to-teal-600 p-3 rounded-lg shadow-lg group-hover:scale-110 transition-transform duration-300">
@@ -242,7 +289,7 @@ const Dashboard = () => {
                 </div>
               </div>
               {/* Interactive Learning Tools */}
-              <div className="group p-6 bg-white/10 hover:bg-white/20 border border-purple-500/30 hover:border-purple-400/50 rounded-xl cursor-pointer transition-all duration-300 backdrop-blur-sm hover:scale-105 hover:shadow-xl">
+              <div className="group p-6 bg-white/10 hover:bg-white/20 border border-purple-500/30 hover:border-purple-400/50 rounded-xl cursor-pointer transition-all duration-300 backdrop-blur-sm hover:scale-102 hover:shadow-xl">
                 <div className="flex items-center justify-between">
                   <div className="flex items-center space-x-4">
                     <div className="bg-gradient-to-r from-purple-600 to-indigo-600 p-3 rounded-lg shadow-lg group-hover:scale-110 transition-transform duration-300">
@@ -266,6 +313,56 @@ const Dashboard = () => {
                 </div>
               </div>
 
+              {/* Badges & Achievements */}
+              <div className="group p-6 bg-white/10 hover:bg-white/20 border border-yellow-500/30 hover:border-yellow-400/50 rounded-xl cursor-pointer transition-all duration-300 backdrop-blur-sm hover:scale-102 hover:shadow-xl">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center space-x-4">
+                    <div className="bg-gradient-to-r from-yellow-500 to-orange-500 p-3 rounded-lg shadow-lg group-hover:scale-110 transition-transform duration-300">
+                      <Award className="h-6 w-6 text-white" />
+                    </div>
+                    <div>
+                      <h3 className="font-semibold text-white group-hover:text-purple-200 transition-colors duration-300">
+                        <AutoText>Badges & Achievements</AutoText>
+                      </h3>
+                      <p className="text-sm text-white/70">
+                        <AutoText>Track your progress and unlock new badges</AutoText>
+                      </p>
+                    </div>
+                  </div>
+                  <Link 
+                    to="/badges" 
+                    className="bg-gradient-to-r from-yellow-500 to-orange-500 text-white px-4 py-2 rounded-lg hover:from-yellow-600 hover:to-orange-600 transition-all duration-300 shadow-lg"
+                  >
+                    <AutoText>View Badges</AutoText>
+                  </Link>
+                </div>
+              </div>
+
+              {/* My Notes */}
+              <div className="group p-6 bg-white/10 hover:bg-white/20 border border-purple-500/30 hover:border-purple-400/50 rounded-xl cursor-pointer transition-all duration-300 backdrop-blur-sm hover:scale-102 hover:shadow-xl">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center space-x-4">
+                    <div className="bg-gradient-to-r from-purple-500 to-pink-500 p-3 rounded-lg shadow-lg group-hover:scale-110 transition-transform duration-300">
+                      <FileText className="h-6 w-6 text-white" />
+                    </div>
+                    <div>
+                      <h3 className="font-semibold text-white group-hover:text-purple-200 transition-colors duration-300 flex items-center space-x-2">
+                        <AutoText>My Notes</AutoText>
+                        <Sparkles className="w-4 h-4 text-purple-400" />
+                      </h3>
+                      <p className="text-sm text-white/70">
+                        <AutoText>Create and organize your study notes</AutoText>
+                      </p>
+                    </div>
+                  </div>
+                  <Link 
+                    to="/notes" 
+                    className="bg-gradient-to-r from-purple-500 to-pink-500 text-white px-4 py-2 rounded-lg hover:from-purple-600 hover:to-pink-600 transition-all duration-300 shadow-lg"
+                  >
+                    <AutoText>Open Notes</AutoText>
+                  </Link>
+                </div>
+              </div>
 
             </div>
           </div>
@@ -274,6 +371,33 @@ const Dashboard = () => {
           <div className="space-y-6">
             {/* XP Display */}
             <XPDisplay userId={user?.id} showDetails={true} />
+
+            {/* Daily Challenge */}
+            <div className="backdrop-blur-xl bg-black/40 border border-orange-500/30 rounded-3xl p-6 shadow-2xl relative overflow-hidden group hover:border-orange-400/50 transition-all duration-300">
+              <div className="flex items-center justify-between mb-4">
+                <div className="flex items-center space-x-3">
+                  <div className="bg-gradient-to-r from-orange-500 to-red-500 p-2 rounded-lg shadow-lg">
+                    <Flame className="w-5 h-5 text-white" />
+                  </div>
+                  <h3 className="text-xl font-bold text-white">
+                    <AutoText>Daily Challenge</AutoText>
+                  </h3>
+                </div>
+                <div className="flex items-center space-x-2 bg-gradient-to-r from-orange-500/20 to-red-500/20 border border-orange-500/30 px-3 py-1 rounded-full backdrop-blur-sm">
+                  <Flame className="w-4 h-4 text-orange-400" />
+                  <span className="font-bold text-white">{streakData.currentStreak}</span>
+                </div>
+              </div>
+              <p className="text-white/80 mb-4">
+                <AutoText>Complete today's question to maintain your streak!</AutoText>
+              </p>
+              <button 
+                onClick={() => navigate('/daily-question')}
+                className="w-full bg-gradient-to-r from-orange-500 to-red-500 text-white py-3 px-4 rounded-xl hover:from-orange-600 hover:to-red-600 transition-all duration-300 font-medium shadow-lg hover:shadow-xl transform hover:scale-105"
+              >
+                <AutoText>Take Today's Challenge</AutoText>
+              </button>
+            </div>
 
             {/* Quick Navigation */}
             <div className="backdrop-blur-xl bg-black/40 border border-purple-500/30 rounded-3xl p-6 shadow-2xl relative overflow-hidden group hover:border-purple-400/50 transition-all duration-300">
@@ -298,71 +422,7 @@ const Dashboard = () => {
               </button>
             </div>
 
-            {/* Daily Challenge */}
-            <div className="backdrop-blur-xl bg-black/40 border border-orange-500/30 rounded-3xl p-6 shadow-2xl relative overflow-hidden group hover:border-orange-400/50 transition-all duration-300">
-              <div className="flex items-center justify-between mb-4">
-                <div className="flex items-center space-x-3">
-                  <div className="bg-gradient-to-r from-orange-500 to-red-500 p-2 rounded-lg shadow-lg">
-                    <Flame className="w-5 h-5 text-white" />
-                  </div>
-                  <h3 className="text-xl font-bold text-white">
-                    <AutoText>Daily Challenge</AutoText>
-                  </h3>
-                </div>
-                <div className="flex items-center space-x-2 bg-gradient-to-r from-orange-500/20 to-red-500/20 border border-orange-500/30 px-3 py-1 rounded-full backdrop-blur-sm">
-                  <Flame className="w-4 h-4 text-orange-400" />
-                  <span className="font-bold text-white">{user?.currentStreak || 0}</span>
-                </div>
-              </div>
-              <p className="text-white/80 mb-4">
-                <AutoText>Complete today's question to maintain your streak!</AutoText>
-              </p>
-              <button 
-                onClick={() => navigate('/daily-question')}
-                className="w-full bg-gradient-to-r from-orange-500 to-red-500 text-white py-3 px-4 rounded-xl hover:from-orange-600 hover:to-red-600 transition-all duration-300 font-medium shadow-lg hover:shadow-xl transform hover:scale-105"
-              >
-                <AutoText>Take Today's Challenge</AutoText>
-              </button>
-            </div>
 
-            {/* Badges */}
-            <div className="backdrop-blur-xl bg-black/40 border border-yellow-500/30 rounded-3xl p-6 shadow-2xl relative overflow-hidden group hover:border-yellow-400/50 transition-all duration-300">
-              <div className="flex items-center justify-between mb-4">
-                <div className="flex items-center space-x-3">
-                  <div className="bg-gradient-to-r from-yellow-500 to-orange-500 p-2 rounded-lg shadow-lg">
-                    <Award className="w-5 h-5 text-white" />
-                  </div>
-                  <h3 className="text-xl font-bold text-white">
-                    <AutoText>Badges & Achievements</AutoText>
-                  </h3>
-                </div>
-              </div>
-              <p className="text-white/80 mb-4">
-                <AutoText>Track your progress and unlock new badges!</AutoText>
-              </p>
-              <button 
-                onClick={() => navigate('/badges')}
-                className="w-full bg-gradient-to-r from-yellow-500 to-orange-500 text-white py-3 px-4 rounded-xl hover:from-yellow-600 hover:to-orange-600 transition-all duration-300 font-medium shadow-lg hover:shadow-xl transform hover:scale-105"
-              >
-                <AutoText>View Badges</AutoText>
-              </button>
-            </div>
-
-            {/* Notes */}
-            <div className="backdrop-blur-xl bg-black/40 border border-purple-500/30 rounded-3xl p-4 shadow-2xl relative overflow-hidden group hover:border-purple-400/50 transition-all duration-300">
-              <Link 
-                to="/notes" 
-                className="flex items-center space-x-3 text-white hover:text-purple-200 transition-colors duration-300"
-              >
-                <div className="bg-gradient-to-r from-purple-500 to-pink-500 p-2 rounded-lg shadow-lg group-hover:scale-110 transition-transform duration-300">
-                  <FileText className="w-5 h-5 text-white" />
-                </div>
-                <span className="font-medium">
-                  <AutoText>My Notes</AutoText>
-                </span>
-                <Sparkles className="w-4 h-4 text-purple-400 ml-auto" />
-              </Link>
-            </div>
           </div>
         </div>
       </div>

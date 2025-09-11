@@ -108,6 +108,22 @@ export const AuthProvider = ({ children }) => {
     }
   };
 
+  const refreshUserData = async () => {
+    try {
+      const token = localStorage.getItem('token');
+      if (token) {
+        const response = await axios.get(`${API_URL}/api/auth/verify`, {
+          headers: { Authorization: `Bearer ${token}` }
+        });
+        setUser(response.data.user);
+        return { success: true };
+      }
+    } catch (error) {
+      console.error('Failed to refresh user data:', error);
+      return { success: false, error: 'Failed to refresh user data' };
+    }
+  };
+
   const value = {
     user,
     loading,
@@ -116,6 +132,7 @@ export const AuthProvider = ({ children }) => {
     login,
     logout,
     updateProfile,
+    refreshUserData,
     setError
   };
 
