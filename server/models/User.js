@@ -16,6 +16,19 @@ const userSchema = new mongoose.Schema({
     type: Number,
     default: 0
   },
+  // XP tracking fields
+  totalXP: {
+    type: Number,
+    default: 0
+  },
+  weeklyXP: {
+    type: Number,
+    default: 0
+  },
+  lastWeeklyReset: {
+    type: Date,
+    default: Date.now
+  },
   achievements: {
     type: Number,
     default: 0

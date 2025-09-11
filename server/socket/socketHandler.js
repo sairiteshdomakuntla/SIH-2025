@@ -2,6 +2,7 @@ const jwt = require('jsonwebtoken');
 const User = require('../models/User');
 const Message = require('../models/Message');
 const Room = require('../models/Room');
+const xpService = require('../services/xpService');
 
 class SocketHandler {
   constructor(io) {
@@ -238,56 +239,40 @@ class SocketHandler {
 
   async awardParticipationXP(userId, action) {
     try {
-      const xpRewards = {
-        message: 2,
-        join_room: 1,
-        helpful_message: 5 // For future implementation
-      };
-
-      const xp = xpRewards[action] || 0;
-      if (xp === 0) return;
-
-      const user = await User.findById(userId);
-      if (!user) return;
-
-      const oldLevel = user.level;
-      user.points += xp;
+      // Use the new XP service
+      const result = await xpService.awardXP(userId, action);
       
-      // Level up calculation (100 points per level)
-      const newLevel = Math.floor(user.points / 100) + 1;
-      if (newLevel > user.level) {
-        user.level = newLevel;
-        
-        // Award level up badge
-        user.achievements += 1;
-        
-        // Broadcast level up to all user's rooms
-        const userInfo = this.activeUsers.get(userId.toString());
-        if (userInfo) {
-          for (const roomId of userInfo.rooms) {
-            this.io.to(roomId).emit('user_level_up', {
-              userId: userId.toString(),
-              name: user.name,
-              oldLevel,
-              newLevel,
-              points: user.points
-            });
-          }
-        }
+      if (!result.success) {
+        return;
       }
-
-      await user.save();
 
       // Send XP update to user
       const userSocket = this.activeUsers.get(userId.toString());
       if (userSocket) {
         this.io.to(userSocket.socketId).emit('xp_awarded', {
           action,
-          xp,
-          totalPoints: user.points,
-          level: user.level,
-          leveledUp: newLevel > oldLevel
+          xpAwarded: result.xpAwarded,
+          totalXP: result.totalXP,
+          level: result.newLevel,
+          leveledUp: result.leveledUp,
+          levelInfo: result.levelInfo,
+          newBadges: result.newBadges,
+          unlocks: result.unlocks
         });
+
+        // Broadcast level up to all user's rooms
+        if (result.leveledUp) {
+          for (const roomId of userSocket.rooms) {
+            this.io.to(roomId).emit('user_level_up', {
+              userId: userId.toString(),
+              name: userSocket.user.name,
+              oldLevel: result.oldLevel,
+              newLevel: result.newLevel,
+              totalXP: result.totalXP,
+              unlocks: result.unlocks
+            });
+          }
+        }
       }
 
     } catch (error) {

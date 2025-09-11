@@ -1,6 +1,9 @@
 const express = require("express");
 const Simulation = require("../models/Simulation");
+const User = require("../models/User");
 const authenticateToken = require("../middleware/authMiddleware");
+const xpService = require("../services/xpService");
+const badgeService = require("../services/badgeService");
 
 const router = express.Router();
 
@@ -180,6 +183,64 @@ router.post("/seed", authenticateToken, async (req, res) => {
 		res.status(500).json({
 			success: false,
 			message: "Failed to create sample simulations",
+		});
+	}
+});
+
+// Mark simulation as completed and award XP
+router.post("/complete/:simulationId", authenticateToken, async (req, res) => {
+	try {
+		const { simulationId } = req.params;
+		const userId = req.user.id;
+		
+		// Check if simulation exists
+		const simulation = await Simulation.findById(simulationId);
+		if (!simulation) {
+			return res.status(404).json({
+				success: false,
+				message: "Simulation not found"
+			});
+		}
+
+		// Get user and update completed simulations count
+		const user = await User.findById(userId);
+		if (!user) {
+			return res.status(404).json({
+				success: false,
+				message: "User not found"
+			});
+		}
+
+		// Update user stats
+		user.completedSimulations = (user.completedSimulations || 0) + 1;
+		await user.save();
+
+		// Award XP for simulation completion
+		const xpResult = await xpService.awardXP(userId, 'simulation_completed');
+		
+		// Check for new badges
+		const newBadges = await badgeService.checkAndAwardBadges(userId);
+
+		res.json({
+			success: true,
+			message: "Simulation completed successfully",
+			simulation: {
+				id: simulation._id,
+				title: simulation.title,
+				subject: simulation.subject
+			},
+			xpAwarded: xpResult.xpAwarded || 0,
+			levelInfo: xpResult.levelInfo,
+			leveledUp: xpResult.leveledUp || false,
+			newBadges: newBadges || [],
+			totalSimulationsCompleted: user.completedSimulations
+		});
+	} catch (error) {
+		console.error("Error completing simulation:", error);
+		res.status(500).json({
+			success: false,
+			message: "Failed to complete simulation",
+			error: error.message
 		});
 	}
 });

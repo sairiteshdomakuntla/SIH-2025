@@ -20,6 +20,7 @@ import Notes from './components/Notes';
 import NoteView from './components/NoteView';
 import BadgesGrid from './components/BadgesGrid';
 import InteractiveLearning from './components/InteractiveLearning';
+import LeaderboardPage from './components/LeaderboardPage';
 import './App.css';
 
 function App() {
@@ -134,6 +135,11 @@ function App() {
         {
           path: 'interactive-learning',
           element: isAuthenticated ? <InteractiveLearning /> : <Navigate to="/login" />,
+          loader: protectedLoader
+        },
+        {
+          path: 'leaderboard',
+          element: isAuthenticated ? <LeaderboardPage /> : <Navigate to="/login" />,
           loader: protectedLoader
         }
       ]

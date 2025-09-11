@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '../context/AuthContext';
 import ConfirmationModal from './ConfirmationModal';
+import XPDisplay from './XPDisplay';
 import { 
   User, 
   Mail, 
@@ -317,30 +318,26 @@ const Profile = () => {
           </div>
         )}
 
-        {/* Stats Cards */}
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
-          <div className="bg-gradient-to-br from-yellow-500/20 to-yellow-600/20 border border-yellow-500/40 rounded-xl p-4 text-center">
-            <Trophy className="w-8 h-8 text-yellow-400 mx-auto mb-2" />
-            <div className="text-2xl font-bold text-yellow-300">{userAchievements}</div>
-            <div className="text-yellow-200/80 text-sm">Achievements</div>
+        {/* XP and Level Display */}
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8">
+          {/* XP Display - Takes up 2/3 of space */}
+          <div className="lg:col-span-2">
+            <XPDisplay userId={user?.id} showDetails={true} />
           </div>
           
-          <div className="bg-gradient-to-br from-blue-500/20 to-blue-600/20 border border-blue-500/40 rounded-xl p-4 text-center">
-            <Star className="w-8 h-8 text-blue-400 mx-auto mb-2" />
-            <div className="text-2xl font-bold text-blue-300">{userXP}</div>
-            <div className="text-blue-200/80 text-sm">Experience Points</div>
-          </div>
-          
-          <div className="bg-gradient-to-br from-green-500/20 to-green-600/20 border border-green-500/40 rounded-xl p-4 text-center">
-            <Target className="w-8 h-8 text-green-400 mx-auto mb-2" />
-            <div className="text-2xl font-bold text-green-300">{completedQuizzes}</div>
-            <div className="text-green-200/80 text-sm">Quizzes Completed</div>
-          </div>
-          
-          <div className="bg-gradient-to-br from-purple-500/20 to-purple-600/20 border border-purple-500/40 rounded-xl p-4 text-center">
-            <Zap className="w-8 h-8 text-purple-400 mx-auto mb-2" />
-            <div className="text-2xl font-bold text-purple-300">{averageScore}%</div>
-            <div className="text-purple-200/80 text-sm">Average Score</div>
+          {/* Quick Stats */}
+          <div className="space-y-4">
+            <div className="bg-gradient-to-br from-green-500/20 to-green-600/20 border border-green-500/40 rounded-xl p-4 text-center">
+              <Target className="w-8 h-8 text-green-400 mx-auto mb-2" />
+              <div className="text-2xl font-bold text-green-300">{completedQuizzes}</div>
+              <div className="text-green-200/80 text-sm">Quizzes Completed</div>
+            </div>
+            
+            <div className="bg-gradient-to-br from-purple-500/20 to-purple-600/20 border border-purple-500/40 rounded-xl p-4 text-center">
+              <Zap className="w-8 h-8 text-purple-400 mx-auto mb-2" />
+              <div className="text-2xl font-bold text-purple-300">{averageScore}%</div>
+              <div className="text-purple-200/80 text-sm">Average Score</div>
+            </div>
           </div>
         </div>
 

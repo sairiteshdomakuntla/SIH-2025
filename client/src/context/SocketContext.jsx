@@ -19,6 +19,7 @@ export const SocketProvider = ({ children }) => {
   const [messages, setMessages] = useState([]);
   const [activeUsers, setActiveUsers] = useState([]);
   const [typingUsers, setTypingUsers] = useState([]);
+  const [xpNotification, setXpNotification] = useState(null);
   const { user, loading } = useAuth();
 
   // Get backend URL with fallback
@@ -104,11 +105,12 @@ export const SocketProvider = ({ children }) => {
       });
 
       // XP and level events
-      newSocket.on('xp_awarded', ({ action, xp, totalPoints, level, leveledUp }) => {
-        console.log(`🎯 +${xp} XP for ${action}!`);
+      newSocket.on('xp_awarded', (data) => {
+        console.log(`🎯 +${data.xpAwarded} XP for ${data.action}!`);
+        setXpNotification(data);
       });
 
-      newSocket.on('user_level_up', ({ userId, name, oldLevel, newLevel, points }) => {
+      newSocket.on('user_level_up', ({ userId, name, oldLevel, newLevel, totalXP, unlocks }) => {
         console.log(`🎉 ${name} leveled up to Level ${newLevel}!`);
         setMessages(prev => [...prev, {
           _id: Date.now(),
@@ -182,6 +184,10 @@ export const SocketProvider = ({ children }) => {
     }
   };
 
+  const clearXpNotification = () => {
+    setXpNotification(null);
+  };
+
   const value = {
     socket,
     connected,
@@ -189,6 +195,8 @@ export const SocketProvider = ({ children }) => {
     messages,
     activeUsers,
     typingUsers,
+    xpNotification,
+    clearXpNotification,
     joinRoom,
     leaveRoom,
     sendMessage,

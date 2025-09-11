@@ -1,6 +1,8 @@
 const DailyQuestion = require('../models/DailyQuestion');
 const DailySubmission = require('../models/DailySubmission');
 const User = require('../models/User');
+const xpService = require('./xpService');
+const badgeService = require('./badgeService');
 
 class DailyQuestionService {
   constructor() {
@@ -352,6 +354,9 @@ Format your response as JSON:
       const user = await User.findById(userId);
       if (!user) return;
 
+      let streakBroken = false;
+      let oldStreak = user.currentStreak || 0;
+
       if (isCorrect) {
         const yesterday = new Date();
         yesterday.setDate(yesterday.getDate() - 1);
@@ -363,6 +368,7 @@ Format your response as JSON:
         } else {
           // Streak broken, start new
           user.currentStreak = 1;
+          streakBroken = true;
         }
 
         // Update longest streak
@@ -370,22 +376,41 @@ Format your response as JSON:
           user.longestStreak = user.currentStreak;
         }
 
-        // Award points
-        user.points = (user.points || 0) + 10; // Base points for correct answer
-        
-        // Streak bonuses
-        if (user.currentStreak >= 7) {
-          user.points += 5; // Weekly streak bonus
-        }
-        if (user.currentStreak >= 30) {
-          user.points += 10; // Monthly streak bonus
-        }
+        // Update daily questions completed count
+        user.dailyQuestionsCompleted = (user.dailyQuestionsCompleted || 0) + 1;
+
+        // Award XP using new XP service
+        const xpResult = await xpService.awardDailyChallengeXP(
+          userId, 
+          isCorrect, 
+          user.currentStreak
+        );
+
+        console.log('Daily challenge XP awarded:', xpResult);
+
+      } else {
+        // Still award some XP for attempt even if wrong
+        const xpResult = await xpService.awardDailyChallengeXP(
+          userId, 
+          isCorrect, 
+          user.currentStreak
+        );
+
+        console.log('Daily challenge XP awarded (wrong answer):', xpResult);
       }
 
       user.lastDailySubmission = today;
       await user.save();
 
-      return user;
+      // Check and award badges
+      await badgeService.checkAndAwardBadges(userId);
+
+      return {
+        user,
+        streakBroken,
+        oldStreak,
+        newStreak: user.currentStreak
+      };
 
     } catch (error) {
       console.error('Error updating user streak:', error);
