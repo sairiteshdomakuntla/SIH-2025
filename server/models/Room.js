@@ -24,6 +24,10 @@ const playerSchema = new mongoose.Schema({
     type: Number,
     default: 0
   },
+  correctAnswers: {
+    type: Number,
+    default: 0
+  },
   timeTaken: {
     type: Number,
     default: 0
@@ -34,7 +38,10 @@ const playerSchema = new mongoose.Schema({
   },
   finishedAt: {
     type: Date
-  }
+  },
+  answers: [{
+    type: mongoose.Schema.Types.Mixed
+  }]
 }, { _id: true });
 
 // Room schema

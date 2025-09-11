@@ -477,6 +477,8 @@ class SocketHandler {
 
   async handlePlayerFinishedQuiz(socket, { roomCode, finalScore, timeTaken, answers }) {
     try {
+      console.log('Player finished quiz data:', { roomCode, finalScore, timeTaken, answersLength: answers?.length });
+      
       const room = await Room.findOne({ roomCode }).populate('players.userId', 'name level avatar');
       
       if (!room) {
@@ -490,11 +492,18 @@ class SocketHandler {
         return;
       }
 
+      // Ensure finalScore is a valid number
+      const validFinalScore = Number.isInteger(finalScore) && finalScore >= 0 ? finalScore : 0;
+      const validTimeTaken = Number.isInteger(timeTaken) && timeTaken >= 0 ? timeTaken : 0;
+      
+      console.log('Valid scores:', { validFinalScore, validTimeTaken });
+
       // Update player completion status
       room.players[playerIndex].hasFinished = true;
       room.players[playerIndex].finishedAt = new Date();
-      room.players[playerIndex].timeTaken = timeTaken;
-      room.players[playerIndex].finalScore = finalScore;
+      room.players[playerIndex].timeTaken = validTimeTaken;
+      room.players[playerIndex].score = validFinalScore; // Use 'score' field instead of 'finalScore'
+      room.players[playerIndex].correctAnswers = validFinalScore; // Set correctAnswers to same value
       room.players[playerIndex].answers = answers;
 
       await room.save();
@@ -518,8 +527,8 @@ class SocketHandler {
         let winner = room.players[0];
         for (let i = 1; i < room.players.length; i++) {
           const player = room.players[i];
-          if (player.finalScore > winner.finalScore || 
-              (player.finalScore === winner.finalScore && player.timeTaken < winner.timeTaken)) {
+          if (player.score > winner.score || 
+              (player.score === winner.score && player.timeTaken < winner.timeTaken)) {
             winner = player;
           }
         }
@@ -530,15 +539,29 @@ class SocketHandler {
         // Award XP to all players
         for (const player of room.players) {
           const baseXP = 20; // Base XP for completing quiz
-          const scoreBonus = player.finalScore * 5; // 5 XP per correct answer
+          const scoreBonus = (player.score || 0) * 5; // 5 XP per correct answer
           const winnerBonus = player.userId.toString() === winner.userId._id.toString() ? 50 : 0;
           
-          await this.awardParticipationXP(player.userId._id, 'quiz_completion');
+          const totalXP = baseXP + scoreBonus + winnerBonus;
           
-          // Award additional XP
-          await User.findByIdAndUpdate(player.userId._id, {
-            $inc: { points: baseXP + scoreBonus + winnerBonus }
+          console.log(`XP Calculation for player ${player.userId.name}:`, {
+            baseXP,
+            score: player.score,
+            scoreBonus,
+            winnerBonus,
+            totalXP,
+            isValidNumber: !isNaN(totalXP)
           });
+          
+          // Make sure totalXP is a valid number
+          if (!isNaN(totalXP) && totalXP > 0) {
+            await User.findByIdAndUpdate(player.userId._id, {
+              $inc: { points: totalXP }
+            });
+            console.log(`Awarded ${totalXP} XP to player ${player.userId.name}`);
+          } else {
+            console.log(`Invalid XP calculation for player ${player.userId.name}:`, totalXP);
+          }
         }
 
         // Broadcast results to all players
@@ -546,15 +569,15 @@ class SocketHandler {
           winner: {
             userId: winner.userId._id,
             name: winner.userId.name,
-            score: winner.finalScore,
+            score: winner.score,
             timeTaken: winner.timeTaken
           },
           results: room.players.map(p => ({
             userId: p.userId._id,
             name: p.userId.name,
-            score: p.finalScore,
+            score: p.score,
             timeTaken: p.timeTaken,
-            correctAnswers: p.correctAnswers,
+            correctAnswers: p.correctAnswers || p.score, // Use correctAnswers if available, fallback to score
             isWinner: p.userId._id.toString() === winner.userId._id.toString()
           })),
           completedAt: room.quizEndedAt
