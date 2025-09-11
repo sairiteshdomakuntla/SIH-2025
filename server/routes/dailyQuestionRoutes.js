@@ -8,6 +8,7 @@ const DailyQuestion = require('../models/DailyQuestion');
 router.get('/today', authenticateToken, async (req, res) => {
   try {
     const userId = req.user.userId;
+   
     const result = await dailyQuestionService.getTodayQuestion(userId);
 
     if (!result || !result.question) {

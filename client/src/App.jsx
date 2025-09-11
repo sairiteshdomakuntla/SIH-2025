@@ -94,6 +94,11 @@ function App() {
           path: 'community',
           element: isAuthenticated ? <Community /> : <Navigate to="/login" />,
           loader: protectedLoader
+        },
+        {
+          path: 'daily-question',
+          element: isAuthenticated ? <DailyQuestion /> : <Navigate to="/login" />,
+          loader: protectedLoader
         }
       ]
     }

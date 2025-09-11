@@ -36,7 +36,9 @@ const DailyQuestion = () => {
         if (data.submission) {
           setSubmissionResult({
             isCorrect: data.submission.isCorrect,
-            userAnswer: data.submission.userAnswer
+            userAnswer: data.submission.userAnswer,
+            correctAnswer: data.submission.correctAnswer, // Make sure this is set
+            explanation: data.submission.explanation
           });
           setSelectedAnswer(data.submission.userAnswer);
         }
@@ -243,12 +245,17 @@ const DailyQuestion = () => {
         <div className="space-y-4 mb-8">
           {dailyQuestion.options.map((option, index) => {
             const isSelected = selectedAnswer === option;
+            const isCorrectAnswer = hasSubmitted && submissionResult && option === submissionResult.correctAnswer;
+            const isUserWrongChoice = hasSubmitted && submissionResult && isSelected && !submissionResult.isCorrect;
+            
+            console.log(`Option: ${option}, isCorrectAnswer: ${isCorrectAnswer}, correctAnswer: ${submissionResult?.correctAnswer}`); // Debug log
+            
             let buttonClass = "w-full p-4 rounded-xl border-2 text-left transition-all duration-300 ";
             
             if (hasSubmitted && submissionResult) {
-              if (option === submissionResult.correctAnswer) {
+              if (isCorrectAnswer) {
                 buttonClass += "bg-green-500/30 border-green-400/80 text-green-200";
-              } else if (isSelected && !submissionResult.isCorrect) {
+              } else if (isUserWrongChoice) {
                 buttonClass += "bg-red-500/30 border-red-400/80 text-red-200";
               } else {
                 buttonClass += "bg-gray-700/50 border-gray-600/50 text-gray-300";
@@ -268,21 +275,32 @@ const DailyQuestion = () => {
                 disabled={hasSubmitted}
                 className={buttonClass}
               >
-                <div className="flex items-center space-x-3">
-                  <div className={`w-6 h-6 rounded-full border-2 flex items-center justify-center ${
-                    isSelected ? 'border-purple-400 bg-purple-600/30' : 'border-gray-500'
-                  }`}>
-                    {isSelected && (
-                      <div className="w-2 h-2 bg-white rounded-full"></div>
+                <div className="flex items-center justify-between w-full">
+                  <div className="flex items-center space-x-3">
+                    <div className={`w-6 h-6 rounded-full border-2 flex items-center justify-center ${
+                      isSelected ? 'border-purple-400 bg-purple-600/30' : 'border-gray-500'
+                    }`}>
+                      {isSelected && (
+                        <div className="w-2 h-2 bg-white rounded-full"></div>
+                      )}
+                    </div>
+                    <span className="text-lg">{option}</span>
+                  </div>
+                  
+                  <div className="flex items-center space-x-2">
+                    {/* Show icons and labels */}
+                    {isCorrectAnswer && (
+                      <>
+                      
+                        <CheckCircle className="w-5 h-5 text-green-400" />
+                      </>
+                    )}
+                    {isUserWrongChoice && (
+                      <>
+                        <XCircle className="w-5 h-5 text-red-400" />
+                      </>
                     )}
                   </div>
-                  <span className="text-lg">{option}</span>
-                  {hasSubmitted && submissionResult && option === submissionResult.correctAnswer && (
-                    <CheckCircle className="w-5 h-5 text-green-400 ml-auto" />
-                  )}
-                  {hasSubmitted && submissionResult && isSelected && !submissionResult.isCorrect && (
-                    <XCircle className="w-5 h-5 text-red-400 ml-auto" />
-                  )}
                 </div>
               </button>
             );

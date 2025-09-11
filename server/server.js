@@ -50,7 +50,7 @@ app.use("/api/quiz", quizRoutes);
 app.use("/api/profile", profileRoutes);
 app.use("/api/simulations", simulationRoutes);
 app.use("/api/community", communityRoutes);
-
+app.use('/api/daily', dailyQuestionRoutes);
 // Start server
 server.listen(PORT, () => {
   console.log(`🚀 Server running on http://localhost:${PORT}`);

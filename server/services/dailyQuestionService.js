@@ -21,12 +21,14 @@ class DailyQuestionService {
    * Generate daily questions for all grades
    */
   async generateDailyQuestions() {
-    const grades = ['5th Grade', '6th Grade', '7th Grade', '8th Grade', '9th Grade', '10th Grade', '11th Grade', '12th Grade'];
+    // FIX: Use the correct grade format that matches your user data
+    const grades = ['5th', '6th', '7th', '8th', '9th', '10th', '11th', '12th'];
     const subjects = ['math', 'science', 'english', 'history', 'geography'];
     const difficulties = ['easy', 'medium', 'hard'];
     const today = this.getTodayDateString();
 
     console.log(`Generating daily questions for ${today}`);
+    console.log(`Total grades to process: ${grades.length}`);
 
     for (const grade of grades) {
       try {
@@ -45,16 +47,19 @@ class DailyQuestionService {
         const randomSubject = subjects[Math.floor(Math.random() * subjects.length)];
         const randomDifficulty = difficulties[Math.floor(Math.random() * difficulties.length)];
 
-        const question = await this.generateQuestionForGrade(grade, randomSubject, randomDifficulty);
+        console.log(`Generating question for ${grade} - ${randomSubject} (${randomDifficulty})`);
+        
+        // Pass the grade with "Grade" suffix for the AI prompt but store without it
+        const question = await this.generateQuestionForGrade(`${grade} Grade`, randomSubject, randomDifficulty);
         
         if (question) {
           try {
             // Use findOneAndUpdate with upsert to handle potential race conditions
-            await DailyQuestion.findOneAndUpdate(
+            const savedQuestion = await DailyQuestion.findOneAndUpdate(
               { date: today, grade: grade },
               {
                 date: today,
-                grade: grade,
+                grade: grade, // Store without "Grade" suffix
                 ...question
               },
               { 
@@ -63,25 +68,33 @@ class DailyQuestionService {
                 setDefaultsOnInsert: true
               }
             );
-            console.log(`Generated daily question for ${grade} - ${randomSubject} (${randomDifficulty})`);
+            console.log(`✅ Successfully generated daily question for ${grade} - ${randomSubject} (${randomDifficulty})`);
+            console.log(`Question ID: ${savedQuestion._id}`);
           } catch (dbError) {
             // Handle duplicate key error gracefully
             if (dbError.code === 11000) {
               console.log(`Question already exists for ${grade} on ${today} (race condition handled)`);
             } else {
+              console.error(`❌ Database error for ${grade}:`, dbError);
               throw dbError;
             }
           }
+        } else {
+          console.error(`❌ Failed to generate question for ${grade}`);
         }
 
         // Add delay to avoid rate limiting
         await new Promise(resolve => setTimeout(resolve, 2000));
 
       } catch (error) {
-        console.error(`Error generating question for ${grade}:`, error);
+        console.error(`❌ Error generating question for ${grade}:`, error);
         // Continue with other grades even if one fails
       }
     }
+    
+    // Verify questions were created
+    const totalQuestionsToday = await DailyQuestion.countDocuments({ date: today });
+    console.log(`Total daily questions created for ${today}: ${totalQuestionsToday}`);
   }
 
   /**
@@ -194,36 +207,57 @@ Format your response as JSON:
    */
   async getTodayQuestion(userId) {
     try {
+      console.log(`Getting today's question for user: ${userId}`);
+      
       const user = await User.findById(userId);
       if (!user) {
+        console.error(`User not found: ${userId}`);
         throw new Error('User not found');
       }
 
+      console.log(`User found - Grade: ${user.grade}`);
       const today = this.getTodayDateString();
+      console.log(`Today's date: ${today}`);
 
-      const dailyQuestion = await DailyQuestion.findOne({
+      let dailyQuestion = await DailyQuestion.findOne({
         date: today,
         grade: user.grade
       });
 
+      console.log(`Daily question found: ${!!dailyQuestion}`);
+      
       if (!dailyQuestion) {
+        console.log('No question found, attempting to generate...');
+        
         // Try to generate question for today if it doesn't exist
         await this.generateDailyQuestions();
         
         // Try again
-        const newQuestion = await DailyQuestion.findOne({
+        dailyQuestion = await DailyQuestion.findOne({
           date: today,
           grade: user.grade
         });
         
-        if (!newQuestion) {
+        console.log(`Daily question after generation: ${!!dailyQuestion}`);
+        
+        if (!dailyQuestion) {
+          console.error(`Still no question found for ${user.grade} on ${today}`);
+          
+          // Check if there are ANY questions for today
+          const anyQuestionsToday = await DailyQuestion.countDocuments({ date: today });
+          console.log(`Total questions for today across all grades: ${anyQuestionsToday}`);
+          
+          // Check if there are questions for this grade on other dates
+          const questionsForGrade = await DailyQuestion.countDocuments({ grade: user.grade });
+          console.log(`Total questions for ${user.grade} across all dates: ${questionsForGrade}`);
+          
           return null;
         }
-        
-        return await this.checkUserSubmission(userId, newQuestion, today);
       }
 
-      return await this.checkUserSubmission(userId, dailyQuestion, today);
+      const result = await this.checkUserSubmission(userId, dailyQuestion, today);
+      console.log(`Returning result with hasSubmitted: ${result.hasSubmitted}`);
+      return result;
 
     } catch (error) {
       console.error('Error getting today question:', error);
@@ -253,7 +287,10 @@ Format your response as JSON:
       submission: submission ? {
         userAnswer: submission.userAnswer,
         isCorrect: submission.isCorrect,
-        submittedAt: submission.submittedAt
+        submittedAt: submission.submittedAt,
+        // Add the correct answer to the submission response
+        correctAnswer: question.answer,
+        explanation: question.explanation
       } : null
     };
   }
