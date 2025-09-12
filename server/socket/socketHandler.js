@@ -59,6 +59,7 @@ class SocketHandler {
     socket.on('leave_quiz_room', this.handleLeaveQuizRoom.bind(this, socket));
     socket.on('player_ready', this.handlePlayerReady.bind(this, socket));
     socket.on('quiz_answer_submitted', this.handleQuizAnswerSubmitted.bind(this, socket));
+    socket.on('quiz_progress_update', this.handleQuizProgressUpdate.bind(this, socket));
     socket.on('player_finished_quiz', this.handlePlayerFinishedQuiz.bind(this, socket));
     
     socket.on('disconnect', this.handleDisconnect.bind(this, socket));
@@ -341,7 +342,15 @@ class SocketHandler {
           _id: room._id,
           subject: room.subject,
           status: room.status,
-          players: room.players,
+          players: room.players.map(p => ({
+            userId: p.userId._id.toString(), // Convert ObjectId to string
+            username: p.userId.name,
+            name: p.userId.name,
+            ready: p.ready,
+            hasFinished: p.hasFinished,
+            score: p.score || 0,
+            progress: 0 // Initial progress is 0
+          })),
           createdAt: room.createdAt,
           maxPlayers: room.maxPlayers
         }
@@ -349,7 +358,15 @@ class SocketHandler {
 
       // Notify other players
       socket.to(roomCode).emit('player_connected', {
-        player: existingPlayer
+        player: {
+          userId: existingPlayer.userId._id.toString(), // Convert ObjectId to string
+          username: existingPlayer.userId.name,
+          name: existingPlayer.userId.name,
+          ready: existingPlayer.ready,
+          hasFinished: existingPlayer.hasFinished,
+          score: existingPlayer.score || 0,
+          progress: 0
+        }
       });
 
       console.log(`User ${socket.user.name} joined quiz room ${roomCode}`);
@@ -461,17 +478,45 @@ class SocketHandler {
 
       await room.save();
 
-      // Notify other players about progress (without revealing answers)
-      socket.to(roomCode).emit('player_answered', {
+      // Calculate progress (assuming 10 total questions)
+      const answeredQuestions = questionIndex + 1;
+      const totalQuestions = 10;
+      const progress = (answeredQuestions / totalQuestions) * 100;
+
+      // Broadcast progress update to ALL players in room (including sender)
+      this.io.to(roomCode).emit('progressUpdate', {
         userId: socket.userId,
-        questionIndex,
-        playerName: socket.user.name
+        username: socket.user.name,
+        answeredQuestions,
+        totalQuestions,
+        progress,
+        questionIndex
       });
 
-      console.log(`Player ${socket.user.name} answered question ${questionIndex} in room ${roomCode}`);
+      console.log(`Player ${socket.user.name} answered question ${questionIndex} in room ${roomCode} - Progress: ${progress}%`);
     } catch (error) {
       console.error('Quiz answer error:', error);
       socket.emit('error', { message: 'Failed to submit answer' });
+    }
+  }
+
+  async handleQuizProgressUpdate(socket, { roomCode, userId, username, progress, answeredQuestions, totalQuestions }) {
+    try {
+      console.log(`[Progress Update] Room: ${roomCode}, User: ${username} (${userId}), Progress: ${progress}%`);
+      
+      // Broadcast progress update to ALL players in room (including sender for consistency)
+      this.io.to(roomCode).emit('progressUpdate', {
+        userId,
+        username,
+        progress,
+        answeredQuestions,
+        totalQuestions
+      });
+      
+      console.log(`[Progress Update] Broadcasted to room ${roomCode}`);
+    } catch (error) {
+      console.error('Quiz progress update error:', error);
+      socket.emit('error', { message: 'Failed to update progress' });
     }
   }
 
@@ -519,71 +564,99 @@ class SocketHandler {
       const allFinished = room.players.every(p => p.hasFinished);
       
       if (allFinished) {
-        // Complete the room and determine winner
+        // Complete the room and determine winner using new formula
         room.status = 'completed';
         room.quizEndedAt = new Date();
         
-        // Determine winner (highest score, then fastest time)
-        let winner = room.players[0];
-        for (let i = 1; i < room.players.length; i++) {
-          const player = room.players[i];
-          if (player.score > winner.score || 
-              (player.score === winner.score && player.timeTaken < winner.timeTaken)) {
-            winner = player;
-          }
+        // Calculate finalScore for each player using the formula: (score * 1000) / (timeTaken + 1)
+        room.players.forEach(player => {
+          const finalScore = (player.score * 1000) / (player.timeTaken + 1);
+          player.finalScore = finalScore;
+        });
+
+        // Sort players by finalScore in descending order
+        const sortedPlayers = [...room.players].sort((a, b) => b.finalScore - a.finalScore);
+
+        // Check for tie
+        const topScore = sortedPlayers[0].finalScore;
+        const playersWithTopScore = sortedPlayers.filter(p => p.finalScore === topScore);
+        
+        let winnerInfo;
+        let winnerId = null;
+        
+        if (playersWithTopScore.length > 1) {
+          // It's a tie
+          winnerInfo = {
+            result: "draw",
+            message: "It's a tie!",
+            finalScore: topScore
+          };
+          winnerId = "draw";
+        } else {
+          // We have a clear winner
+          const winner = sortedPlayers[0];
+          winnerInfo = {
+            userId: winner.userId._id.toString(),
+            name: winner.userId.name,
+            score: winner.score,
+            timeTaken: winner.timeTaken,
+            finalScore: winner.finalScore
+          };
+          winnerId = winner.userId._id;
         }
 
-        room.winner = winner.userId;
+        room.winner = winnerId;
         await room.save();
 
         // Award XP to all players
         for (const player of room.players) {
-          const baseXP = 20; // Base XP for completing quiz
-          const scoreBonus = (player.score || 0) * 5; // 5 XP per correct answer
-          const winnerBonus = player.userId.toString() === winner.userId._id.toString() ? 50 : 0;
-          
-          const totalXP = baseXP + scoreBonus + winnerBonus;
-          
-          console.log(`XP Calculation for player ${player.userId.name}:`, {
-            baseXP,
-            score: player.score,
-            scoreBonus,
-            winnerBonus,
-            totalXP,
-            isValidNumber: !isNaN(totalXP)
-          });
-          
-          // Make sure totalXP is a valid number
-          if (!isNaN(totalXP) && totalXP > 0) {
-            await User.findByIdAndUpdate(player.userId._id, {
-              $inc: { points: totalXP }
+          try {
+            const baseXP = 20; // Base XP for completing quiz
+            const scoreBonus = (player.score || 0) * 5; // 5 XP per correct answer
+            const winnerBonus = (winnerId !== "draw" && player.userId._id.toString() === winnerId.toString()) ? 50 : 0;
+            
+            const totalXP = baseXP + scoreBonus + winnerBonus;
+            
+            console.log(`XP Calculation for player ${player.userId.name}:`, {
+              baseXP,
+              score: player.score,
+              scoreBonus,
+              winnerBonus,
+              totalXP,
+              isValidNumber: !isNaN(totalXP)
             });
-            console.log(`Awarded ${totalXP} XP to player ${player.userId.name}`);
-          } else {
-            console.log(`Invalid XP calculation for player ${player.userId.name}:`, totalXP);
+            
+            // Make sure totalXP is a valid number
+            if (!isNaN(totalXP) && totalXP > 0) {
+              await User.findByIdAndUpdate(player.userId._id, {
+                $inc: { points: totalXP }
+              });
+              console.log(`Awarded ${totalXP} XP to player ${player.userId.name}`);
+            } else {
+              console.log(`Invalid XP calculation for player ${player.userId.name}:`, totalXP);
+            }
+          } catch (error) {
+            console.error(`Error awarding XP to player:`, error);
           }
         }
 
         // Broadcast results to all players
         this.io.to(roomCode).emit('quiz_completed', {
-          winner: {
-            userId: winner.userId._id,
-            name: winner.userId.name,
-            score: winner.score,
-            timeTaken: winner.timeTaken
-          },
-          results: room.players.map(p => ({
-            userId: p.userId._id,
+          winner: winnerInfo,
+          results: sortedPlayers.map(p => ({
+            userId: p.userId._id.toString(), // Convert ObjectId to string
             name: p.userId.name,
             score: p.score,
             timeTaken: p.timeTaken,
-            correctAnswers: p.correctAnswers || p.score, // Use correctAnswers if available, fallback to score
-            isWinner: p.userId._id.toString() === winner.userId._id.toString()
+            finalScore: p.finalScore,
+            correctAnswers: p.correctAnswers || p.score,
+            isWinner: winnerId === "draw" ? false : p.userId._id.toString() === winnerId.toString()
           })),
           completedAt: room.quizEndedAt
         });
 
-        console.log(`Quiz completed in room ${roomCode}. Winner: ${winner.userId.name}`);
+        const winnerName = winnerId === "draw" ? "Draw" : winnerInfo.name;
+        console.log(`Quiz completed in room ${roomCode}. Winner: ${winnerName} with finalScore: ${winnerInfo.finalScore || topScore}`);
       }
 
     } catch (error) {

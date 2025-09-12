@@ -279,38 +279,75 @@ const completeRoom = async (req, res) => {
     console.log(`All players finished: ${allFinished}`);
     
     if (allFinished) {
-      // Determine winner: highest score wins, if tie then fastest time wins
-      const sortedPlayers = room.players.sort((a, b) => {
-        if (a.score !== b.score) {
-          return b.score - a.score; // Higher score first
-        }
-        return a.timeTaken - b.timeTaken; // Faster time first
+      // Calculate finalScore for each player using the formula: (score * 1000) / (timeTaken + 1)
+      const playersWithFinalScore = room.players.map(player => {
+        const finalScore = (player.score * 1000) / (player.timeTaken + 1);
+        return {
+          ...player.toObject(),
+          finalScore: finalScore
+        };
       });
 
-      const winner = sortedPlayers[0];
-      room.winner = winner.userId;
+      // Sort players by finalScore in descending order
+      const sortedPlayers = playersWithFinalScore.sort((a, b) => b.finalScore - a.finalScore);
+
+      // Check for tie
+      const topScore = sortedPlayers[0].finalScore;
+      const playersWithTopScore = sortedPlayers.filter(p => p.finalScore === topScore);
+      
+      let winnerInfo;
+      let winnerId = null;
+      let winnerName = null;
+      
+      if (playersWithTopScore.length > 1) {
+        // It's a tie
+        winnerInfo = {
+          result: "draw",
+          message: "It's a tie!",
+          finalScore: topScore
+        };
+        winnerId = "draw";
+        winnerName = "Draw";
+      } else {
+        // We have a clear winner
+        const winner = sortedPlayers[0];
+        winnerInfo = {
+          userId: winner.userId,
+          username: winner.username,
+          score: winner.score,
+          timeTaken: winner.timeTaken,
+          finalScore: winner.finalScore
+        };
+        winnerId = winner.userId;
+        winnerName = winner.username;
+      }
+
+      // Update room with winner information
+      room.winner = winnerId;
       room.status = 'completed';
       room.quizEndedAt = new Date();
       
+      // Store finalScores in the room players
+      room.players.forEach((player, index) => {
+        player.finalScore = playersWithFinalScore[index].finalScore;
+      });
+      
       await room.save();
 
-      console.log(`Winner determined: ${winner.username} with score ${winner.score}`);
+      console.log(`Winner determined: ${winnerName} with finalScore ${winnerInfo.finalScore || topScore}`);
 
       // Emit to all players in room via socket
       const io = req.app.get('io');
       if (io) {
         io.to(roomCode).emit('quizCompleted', {
-          winner: {
-            userId: winner.userId,
-            username: winner.username,
-            score: winner.score,
-            timeTaken: winner.timeTaken
-          },
-          results: room.players.map(p => ({
+          winner: winnerInfo,
+          results: sortedPlayers.map(p => ({
             userId: p.userId,
             username: p.username,
             score: p.score,
-            timeTaken: p.timeTaken
+            timeTaken: p.timeTaken,
+            finalScore: p.finalScore,
+            isWinner: winnerId === "draw" ? false : p.userId.toString() === winnerId.toString()
           })),
           room: room
         });
@@ -320,17 +357,16 @@ const completeRoom = async (req, res) => {
         success: true,
         message: 'Quiz completed',
         gameCompleted: true,
-        winner: {
-          userId: winner.userId,
-          username: winner.username,
-          score: winner.score,
-          timeTaken: winner.timeTaken
-        },
-        results: room.players.map(p => ({
+        winner: winnerInfo,
+        winnerId: winnerId,
+        winnerName: winnerName,
+        results: sortedPlayers.map(p => ({
           userId: p.userId,
           username: p.username,
           score: p.score,
-          timeTaken: p.timeTaken
+          timeTaken: p.timeTaken,
+          finalScore: p.finalScore,
+          isWinner: winnerId === "draw" ? false : p.userId.toString() === winnerId.toString()
         }))
       });
     } else {

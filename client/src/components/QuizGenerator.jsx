@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useAuth } from '../context/AuthContext';
 import { useSocket } from '../context/SocketContext';
 import { useLocation, useNavigate } from 'react-router-dom';
-import { Brain, Sparkles, Trophy, BookOpen, Zap, Target, Clock, CheckCircle, XCircle, Users, Wifi } from 'lucide-react';
+import { Brain, Sparkles, Trophy, BookOpen, Zap, Target, Clock, CheckCircle, XCircle, Users, Wifi, Car, Flag } from 'lucide-react';
 
 const QuizGenerator = () => {
   const [quiz, setQuiz] = useState(null);
@@ -35,6 +35,25 @@ const QuizGenerator = () => {
   const location = useLocation();
   const navigate = useNavigate();
   const API_URL = import.meta.env.VITE_BACKEND_URL;
+
+  // Single source of truth for multiplayer race progress
+  const [players, setPlayers] = useState([]); // Array of { userId, username, progress }
+  const [currentRoomCode, setCurrentRoomCode] = useState(null); // Store current room code
+  const [opponentInfo, setOpponentInfo] = useState(null);
+
+  // Define unique car emojis for each player
+  const carEmojis = ['🚗', '🏎️', '🚙', '🚕', '🚐', '🚚', '🚛', '🏁'];
+
+  // Helper function to get consistent car emoji for player
+  const getPlayerCarEmoji = (playerId) => {
+    // Create a simple hash from the playerId to ensure consistent car assignment
+    let hash = 0;
+    for (let i = 0; i < playerId.length; i++) {
+      hash = ((hash << 5) - hash) + playerId.charCodeAt(i);
+      hash = hash & hash; // Convert to 32-bit integer
+    }
+    return carEmojis[Math.abs(hash) % carEmojis.length];
+  };
 
   const subjects = [
     { value: 'math', label: 'Mathematics', icon: '🔢' },
@@ -93,6 +112,12 @@ const QuizGenerator = () => {
     const handleQuizStarted = ({ roomCode, subject, startTime }) => {
       console.log('Quiz started for room:', roomCode);
       generateQuiz();
+      
+      // Initialize opponent progress if not already set
+      if (roomData && !opponentInfo) {
+        // We need to get opponent info from room data
+        // This will be set when joining the room
+      }
     };
 
     const handleQuizStarting = ({ message, countdown }) => {
@@ -101,11 +126,13 @@ const QuizGenerator = () => {
     };
 
     const handlePlayerAnswered = ({ userId, questionIndex, playerName }) => {
-      setOpponentProgress(prev => ({
-        ...prev,
-        currentQuestion: questionIndex + 1,
-        playerName
-      }));
+      if (userId !== user._id) {
+        setOpponentProgress(prev => ({
+          ...prev,
+          currentQuestion: questionIndex + 1,
+          playerName
+        }));
+      }
     };
 
     const handlePlayerFinished = ({ userId, playerName, finishedAt }) => {
@@ -117,6 +144,20 @@ const QuizGenerator = () => {
           playerName
         }));
       }
+      
+      // Set progress to 100% for finished player
+      const userIdString = String(userId); // Convert to string
+      setPlayers(prev => {
+        return prev.map(player => {
+          if (player.userId === userIdString) {
+            return {
+              ...player,
+              progress: 100
+            };
+          }
+          return player;
+        });
+      });
     };
 
     const handleQuizCompleted = ({ winner, results, completedAt }) => {
@@ -133,6 +174,81 @@ const QuizGenerator = () => {
       alert(message);
     };
 
+    const handleQuizRoomJoined = ({ roomCode, room }) => {
+      console.log('Quiz room joined:', { roomCode, room });
+      setCurrentRoomCode(roomCode); // Store the room code
+      
+      if (room && room.players) {
+        // Create unique players array - remove duplicates by userId
+        const uniquePlayers = [];
+        const seenUserIds = new Set();
+        
+        room.players.forEach(player => {
+          const userIdString = String(player.userId); // Convert to string to handle ObjectId
+          if (!seenUserIds.has(userIdString)) {
+            seenUserIds.add(userIdString);
+            uniquePlayers.push({
+              userId: userIdString, // Ensure it's a string
+              username: player.username || player.name,
+              progress: player.progress || 0
+            });
+          }
+        });
+        
+        console.log('Initialized unique players:', uniquePlayers);
+        setPlayers(uniquePlayers);
+      }
+    };
+
+    const handlePlayerConnected = ({ player }) => {
+      console.log('Player connected:', player);
+      
+      // Add to players array if not exists - prevent duplicates
+      setPlayers(prev => {
+        const userIdString = String(player.userId); // Convert to string
+        // Check if player already exists
+        const exists = prev.find(p => p.userId === userIdString);
+        if (exists) {
+          console.log('Player already exists, skipping:', userIdString);
+          return prev; // Don't add duplicate
+        }
+        
+        const newPlayer = {
+          userId: userIdString, // Ensure it's a string
+          username: player.username || player.name,
+          progress: 0
+        };
+        
+        console.log('Adding new player:', newPlayer);
+        return [...prev, newPlayer];
+      });
+    };
+
+    const handleProgressUpdate = ({ userId, username, progress, answeredQuestions }) => {
+      console.log('Progress update received:', { userId, username, progress, answeredQuestions });
+      console.log('Current players before update:', players);
+      
+      const userIdString = String(userId); // Convert to string
+      setPlayers(prev => {
+        const updated = prev.map(player => {
+          if (player.userId === userIdString) {
+            console.log(`Updating player ${username} progress from ${player.progress}% to ${progress}%`);
+            return {
+              ...player,
+              username: username || player.username,
+              progress: Math.min(progress || 0, 100)
+            };
+          }
+          return player;
+        });
+        console.log('Players after update:', updated);
+        return updated;
+      });
+    };
+
+    socket.on('quiz_room_joined', handleQuizRoomJoined);
+    socket.on('player_connected', handlePlayerConnected);
+    socket.on('progressUpdate', handleProgressUpdate);
     socket.on('quiz_starting', handleQuizStarting);
     socket.on('quiz_started', handleQuizStarted);
     socket.on('player_answered', handlePlayerAnswered);
@@ -141,6 +257,9 @@ const QuizGenerator = () => {
     socket.on('error', handleError);
 
     return () => {
+      socket.off('quiz_room_joined', handleQuizRoomJoined);
+      socket.off('player_connected', handlePlayerConnected);
+      socket.off('progressUpdate', handleProgressUpdate);
       socket.off('quiz_starting', handleQuizStarting);
       socket.off('quiz_started', handleQuizStarted);
       socket.off('player_answered', handlePlayerAnswered);
@@ -223,10 +342,10 @@ const QuizGenerator = () => {
     setUserAnswers(newAnswers);
 
     // Emit answer to multiplayer room
-    if (isMultiplayer && socket && roomData) {
+    if (isMultiplayer && socket && currentRoomCode) {
       const isCorrect = answer === quiz[currentQuestionIndex].answer;
       socket.emit('quiz_answer_submitted', {
-        roomCode: roomData.roomCode,
+        roomCode: currentRoomCode,
         questionIndex: currentQuestionIndex,
         answer,
         isCorrect
@@ -238,6 +357,45 @@ const QuizGenerator = () => {
     if (currentQuestionIndex < quiz.length - 1) {
       setCurrentQuestionIndex(prev => prev + 1);
       setSelectedAnswer(userAnswers[currentQuestionIndex + 1] || '');
+      
+      // Update user's race progress
+      if (isMultiplayer && socket && currentRoomCode) {
+        const answeredQuestions = currentQuestionIndex + 2;
+        const newProgress = (answeredQuestions / quiz.length) * 100;
+        
+        // Update local state
+        const userIdString = String(user._id); // Convert to string
+        setPlayers(prev => {
+          return prev.map(player => {
+            if (player.userId === userIdString) {
+              return {
+                ...player,
+                progress: newProgress
+              };
+            }
+            return player;
+          });
+        });
+        
+        // Emit progress update to other players
+        console.log('Emitting progress update:', {
+          roomCode: currentRoomCode,
+          userId: userIdString,
+          username: user.name,
+          progress: newProgress,
+          answeredQuestions: answeredQuestions,
+          totalQuestions: quiz.length
+        });
+        
+        socket.emit('quiz_progress_update', {
+          roomCode: currentRoomCode,
+          userId: userIdString, // Send as string
+          username: user.name,
+          progress: newProgress,
+          answeredQuestions: answeredQuestions,
+          totalQuestions: quiz.length
+        });
+      }
     } else {
       // Last question - submit quiz
       submitQuiz();
@@ -282,10 +440,23 @@ const QuizGenerator = () => {
       results
     };
 
-    if (isMultiplayer && socket && roomData) {
+    if (isMultiplayer && socket && currentRoomCode) {
+      // Set user's progress to 100% when finished
+      setPlayers(prev => {
+        return prev.map(player => {
+          if (player.userId === user._id) {
+            return {
+              ...player,
+              progress: 100
+            };
+          }
+          return player;
+        });
+      });
+      
       // Emit completion to multiplayer room
       socket.emit('player_finished_quiz', {
-        roomCode: roomData.roomCode,
+        roomCode: currentRoomCode,
         finalScore: correctAnswers,
         timeTaken,
         answers: userAnswers
@@ -393,6 +564,11 @@ const QuizGenerator = () => {
           <div className="mb-6">
             <Trophy className="w-16 h-16 text-yellow-400 mx-auto mb-4" />
             <h2 className="text-3xl font-bold text-white mb-2">Battle Results</h2>
+            {multiplayerResults.winner?.result === "draw" ? (
+              <p className="text-yellow-400 text-lg font-bold">🤝 It's a Draw!</p>
+            ) : (
+              <p className="text-green-400 text-lg">🏆 Winner: {multiplayerResults.winner?.name}</p>
+            )}
           </div>
           
           <div className="grid md:grid-cols-2 gap-6 mb-6">
@@ -400,24 +576,37 @@ const QuizGenerator = () => {
               <div 
                 key={player.userId}
                 className={`p-6 rounded-2xl border-2 ${
-                  player.isWinner 
-                    ? 'bg-gradient-to-br from-yellow-500/20 to-orange-500/20 border-yellow-400' 
-                    : 'bg-white/5 border-white/20'
+                  multiplayerResults.winner?.result === "draw"
+                    ? 'bg-gradient-to-br from-blue-500/20 to-purple-500/20 border-blue-400'
+                    : player.isWinner 
+                      ? 'bg-gradient-to-br from-yellow-500/20 to-orange-500/20 border-yellow-400' 
+                      : 'bg-white/5 border-white/20'
                 }`}
               >
-                {player.isWinner && (
+                {player.isWinner && multiplayerResults.winner?.result !== "draw" && (
                   <div className="text-yellow-400 mb-2">
                     <Trophy className="w-6 h-6 mx-auto" />
                   </div>
                 )}
+                {multiplayerResults.winner?.result === "draw" && (
+                  <div className="text-blue-400 mb-2">
+                    🤝
+                  </div>
+                )}
                 <h3 className="text-xl font-bold text-white mb-2">{player.name}</h3>
                 <div className="space-y-2 text-sm">
-                  <p className="text-white/80">Score: <span className="font-bold text-white">{player.score}/{player.correctAnswers * 10}</span></p>
+                  <p className="text-white/80">Score: <span className="font-bold text-white">{player.score}/10</span></p>
                   <p className="text-white/80">Correct: <span className="font-bold text-white">{player.correctAnswers}/10</span></p>
                   <p className="text-white/80">Time: <span className="font-bold text-white">{formatTime(player.timeTaken)}</span></p>
+                  {player.finalScore && (
+                    <p className="text-white/80">Final Score: <span className="font-bold text-yellow-300">{player.finalScore.toFixed(2)}</span></p>
+                  )}
                 </div>
-                {player.isWinner && (
+                {player.isWinner && multiplayerResults.winner?.result !== "draw" && (
                   <div className="mt-2 text-yellow-400 font-bold">WINNER! 🎉</div>
+                )}
+                {multiplayerResults.winner?.result === "draw" && (
+                  <div className="mt-2 text-blue-400 font-bold">DRAW! 🤝</div>
                 )}
               </div>
             ))}
@@ -611,8 +800,8 @@ const QuizGenerator = () => {
 
           <button
             onClick={() => {
-              if (socket && roomData) {
-                socket.emit('player_ready', { roomCode: roomData.roomCode });
+              if (socket && (currentRoomCode || roomData?.roomCode)) {
+                socket.emit('player_ready', { roomCode: currentRoomCode || roomData.roomCode });
               }
             }}
             className="bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-700 hover:to-emerald-700 text-white font-bold py-4 px-8 rounded-2xl transition-all duration-300 transform hover:scale-105 shadow-lg"
@@ -674,22 +863,213 @@ const QuizGenerator = () => {
             </div>
           </div>
 
-          {/* Multiplayer Opponent Progress */}
-          {isMultiplayer && opponentProgress && (
-            <div className="bg-white/5 rounded-xl p-4 mb-6">
-              <div className="flex items-center justify-between">
-                <div className="flex items-center space-x-3">
-                  <Users className="w-5 h-5 text-white/60" />
-                  <span className="text-white/80 text-sm">
-                    {opponentProgress.playerName}
-                  </span>
+          {/* Multiplayer Car Race Progress */}
+          {isMultiplayer && players.length > 0 && (
+            <div className="bg-gray-800/60 backdrop-blur-sm border border-gray-600/50 rounded-xl p-6 mb-8">
+              <div className="flex justify-between items-center mb-6">
+                <h3 className="text-white font-semibold flex items-center">
+                  <Car className="w-5 h-5 mr-2" />
+                  🏁 Live Race Progress ({players.length} racers)
+                </h3>
+                <div className="flex items-center space-x-2">
+                  <div className="w-2 h-2 bg-green-400 rounded-full animate-pulse"></div>
+                  <span className="text-xs text-green-400">LIVE</span>
                 </div>
-                <div className="text-sm text-white/60">
-                  {opponentProgress.finished 
-                    ? 'Finished!' 
-                    : `Question ${opponentProgress.currentQuestion || 1}/10`
-                  }
-                </div>
+              </div>
+              
+              {/* Race Track Container */}
+              <div className="space-y-6">
+                {players
+                  .filter(player => {
+                    console.log('Player filter check:', player);
+                    return player && player.userId && player.username && typeof player.userId === 'string';
+                  })
+                  .sort((a, b) => (b.progress || 0) - (a.progress || 0)) // Sort by progress, highest first
+                  .map((player, index) => {
+                    console.log('Rendering player key:', player.userId, 'Type:', typeof player.userId);
+                    const userIdString = String(user._id);
+                    const isCurrentUser = player.userId === userIdString;
+                    const progress = Math.min(player.progress || 0, 100);
+                    const isFinished = progress >= 100;
+                    const carEmoji = getPlayerCarEmoji(player.userId);
+                    const position = index + 1; // Current race position
+                    
+                    // Dynamic color based on position and whether it's current user
+                    let playerColor, glowColor;
+                    if (isCurrentUser) {
+                      playerColor = '#3B82F6'; // Blue for current user
+                      glowColor = 'rgba(59, 130, 246, 0.3)';
+                    } else if (position === 1) {
+                      playerColor = '#F59E0B'; // Gold for 1st place
+                      glowColor = 'rgba(245, 158, 11, 0.3)';
+                    } else if (position === 2) {
+                      playerColor = '#6B7280'; // Silver for 2nd place
+                      glowColor = 'rgba(107, 114, 128, 0.3)';
+                    } else if (position === 3) {
+                      playerColor = '#CD7F32'; // Bronze for 3rd place
+                      glowColor = 'rgba(205, 127, 50, 0.3)';
+                    } else {
+                      playerColor = '#EF4444'; // Red for others
+                      glowColor = 'rgba(239, 68, 68, 0.3)';
+                    }
+                    
+                    return (
+                      <div key={String(player.userId)} className="relative group">
+                        {/* Position Badge and Player Info */}
+                        <div className="flex justify-between items-center mb-3">
+                          <div className="flex items-center space-x-3">
+                            {/* Position Badge */}
+                            <div className={`
+                              w-8 h-8 rounded-full flex items-center justify-center text-sm font-bold
+                              ${position === 1 ? 'bg-yellow-500 text-yellow-900' : 
+                                position === 2 ? 'bg-gray-400 text-gray-900' :
+                                position === 3 ? 'bg-yellow-600 text-yellow-100' :
+                                'bg-gray-600 text-white'}
+                            `}>
+                              {position}
+                            </div>
+                            
+                            {/* Player Name */}
+                            <span className={`text-sm font-medium flex items-center space-x-2 ${isCurrentUser ? 'text-blue-300' : 'text-white/80'}`}>
+                              <span>{carEmoji}</span>
+                              <span>{player.username} {isCurrentUser ? '(You)' : ''}</span>
+                              {isFinished && <span className="text-yellow-400">🏆</span>}
+                            </span>
+                          </div>
+                          
+                          {/* Progress Percentage and Speed Indicator */}
+                          <div className="flex items-center space-x-3">
+                            <span className="text-xs text-white/60">
+                              {Math.round(progress)}%
+                            </span>
+                            {/* Speed indicator based on recent progress */}
+                            {!isFinished && progress > 0 && progress < 100 && (
+                              <div className="flex space-x-1">
+                                <div className="w-1 h-3 bg-blue-400 rounded animate-pulse"></div>
+                                <div className="w-1 h-3 bg-blue-400 rounded animate-pulse" style={{animationDelay: '0.1s'}}></div>
+                                <div className="w-1 h-3 bg-blue-400 rounded animate-pulse" style={{animationDelay: '0.2s'}}></div>
+                              </div>
+                            )}
+                          </div>
+                        </div>
+                      
+                        {/* Enhanced Race Track */}
+                        <div className="relative h-12 bg-gray-700 rounded-full overflow-hidden shadow-inner">
+                          {/* Track Surface with checkered pattern */}
+                          <div className="absolute inset-0 opacity-10">
+                            <div className="flex h-full">
+                              {[...Array(20)].map((_, i) => (
+                                <div key={i} className={`flex-1 h-full ${i % 2 === 0 ? 'bg-white' : 'bg-black'}`}></div>
+                              ))}
+                            </div>
+                          </div>
+                          
+                          {/* Progress Bar with gradient */}
+                          <div 
+                            className="absolute top-0 left-0 h-full bg-gradient-to-r from-green-500 via-yellow-400 to-red-500 transition-all duration-700 ease-out"
+                            style={{ 
+                              width: `${progress}%`,
+                              boxShadow: `0 0 20px ${glowColor}`
+                            }}
+                          ></div>
+                          
+                          {/* Track Markers */}
+                          <div className="absolute inset-0">
+                            {/* 25% marker */}
+                            <div className="absolute left-1/4 top-0 w-px h-full bg-white/30"></div>
+                            {/* 50% marker */}
+                            <div className="absolute left-1/2 top-0 w-px h-full bg-white/30"></div>
+                            {/* 75% marker */}
+                            <div className="absolute left-3/4 top-0 w-px h-full bg-white/30"></div>
+                          </div>
+                          
+                          {/* Finish Line */}
+                          <div className="absolute right-0 top-0 w-3 h-full bg-gradient-to-b from-yellow-400 to-yellow-600 opacity-80">
+                            <div className="absolute inset-0 bg-black/20" style={{
+                              backgroundImage: 'repeating-linear-gradient(45deg, transparent, transparent 2px, black 2px, black 4px)'
+                            }}></div>
+                          </div>
+                          
+                          {/* Car with enhanced animation */}
+                          <div 
+                            className="absolute top-1/2 transform -translate-y-1/2 transition-all duration-700 ease-out z-10"
+                            style={{ 
+                              left: `${Math.max(0, Math.min(progress, 100))}%`,
+                              transform: `translateX(-50%) translateY(-50%) ${isFinished ? 'scale(1.3)' : 'scale(1)'}`
+                            }}
+                          >
+                            <div 
+                              className={`
+                                w-10 h-10 rounded-full flex items-center justify-center text-xl font-bold shadow-lg border-2 border-white/30
+                                ${isFinished ? 'animate-bounce' : progress > 0 ? 'animate-pulse' : ''}
+                              `}
+                              style={{ 
+                                backgroundColor: playerColor,
+                                boxShadow: `0 0 15px ${glowColor}, 0 4px 8px rgba(0,0,0,0.3)`
+                              }}
+                            >
+                              {carEmoji}
+                            </div>
+                            
+                            {/* Exhaust effect when moving */}
+                            {!isFinished && progress > 0 && progress < 100 && (
+                              <div className="absolute right-10 top-1/2 transform -translate-y-1/2">
+                                <div className="flex space-x-1">
+                                  <div className="w-2 h-1 bg-gray-400 opacity-60 rounded animate-pulse"></div>
+                                  <div className="w-1 h-1 bg-gray-300 opacity-40 rounded animate-pulse" style={{animationDelay: '0.1s'}}></div>
+                                  <div className="w-1 h-1 bg-gray-200 opacity-20 rounded animate-pulse" style={{animationDelay: '0.2s'}}></div>
+                                </div>
+                              </div>
+                            )}
+                            
+                            {/* Victory celebration effect */}
+                            {isFinished && (
+                              <div className="absolute -top-12 left-1/2 transform -translate-x-1/2">
+                                <div className="text-yellow-400 text-3xl animate-bounce">🏆</div>
+                                <div className="absolute top-0 left-1/2 transform -translate-x-1/2 text-xs text-yellow-300 animate-pulse">
+                                  WINNER!
+                                </div>
+                              </div>
+                            )}
+                            
+                            {/* Current position indicator */}
+                            {!isFinished && (
+                              <div className="absolute -bottom-8 left-1/2 transform -translate-x-1/2">
+                                <div className="text-xs text-white/60 bg-black/50 rounded px-2 py-1">
+                                  #{position}
+                                </div>
+                              </div>
+                            )}
+                          </div>
+                        </div>
+                      </div>
+                    );
+                  })}
+              </div>
+              
+              {/* Enhanced Race Status */}
+              <div className="mt-6 text-center">
+                {players.some(p => (p.progress || 0) >= 100) ? (
+                  <div className="bg-yellow-500/20 border border-yellow-500/40 rounded-lg p-3">
+                    <div className="text-yellow-400 text-sm font-medium flex items-center justify-center space-x-2">
+                      <span>🏁</span>
+                      <span>{players.filter(p => (p.progress || 0) >= 100).length} racer(s) crossed the finish line!</span>
+                      <span>🏁</span>
+                    </div>
+                  </div>
+                ) : (
+                  <div className="bg-blue-500/20 border border-blue-500/40 rounded-lg p-3">
+                    <div className="text-blue-400 text-sm flex items-center justify-center space-x-2">
+                      <span>�</span>
+                      <span>Race in progress...</span>
+                      <div className="flex space-x-1">
+                        <div className="w-1 h-1 bg-blue-400 rounded-full animate-bounce"></div>
+                        <div className="w-1 h-1 bg-blue-400 rounded-full animate-bounce" style={{animationDelay: '0.1s'}}></div>
+                        <div className="w-1 h-1 bg-blue-400 rounded-full animate-bounce" style={{animationDelay: '0.2s'}}></div>
+                      </div>
+                    </div>
+                  </div>
+                )}
               </div>
             </div>
           )}
