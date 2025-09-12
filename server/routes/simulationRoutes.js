@@ -42,6 +42,7 @@ router.get("/subject/:subject", authenticateToken, async (req, res) => {
 router.get("/slug/:slug", async (req, res) => {
 	try {
 		const { slug } = req.params;
+		console.log("Fetching simulation with slug:", slug);
 		const simulation = await Simulation.findOne({ slug });
 		
 		if (!simulation) {

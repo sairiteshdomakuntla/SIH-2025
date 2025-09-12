@@ -30,6 +30,8 @@ const io = socketIo(server, {
 });
 
 const PORT = process.env.PORT || 5000;
+
+// Enable CORS
 app.use(cors());
 
 // Connect DB
@@ -37,6 +39,12 @@ connectDB();
 
 // Initialize Socket Handler
 const socketHandler = new SocketHandler(io);
+
+// Add authentication middleware to socket.io
+io.use((socket, next) => {
+  socketHandler.authenticateSocket(socket, next);
+});
+
 socketHandler.initialize();
 
 // Middleware

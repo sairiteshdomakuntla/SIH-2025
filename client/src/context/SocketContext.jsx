@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useEffect, useState } from 'react';
+import React, { createContext, useContext, useEffect, useState, useRef } from 'react';
 import io from 'socket.io-client';
 import { useAuth } from './AuthContext';
 
@@ -29,14 +29,21 @@ export const SocketProvider = ({ children }) => {
 
   useEffect(() => {
     // Wait for auth to finish loading
-    if (loading) return;
+    if (loading) {
+      console.log('⏳ Auth still loading...');
+      return;
+    }
 
-    if (user) {
+    if (user && (user._id || user.id)) {
       const token = localStorage.getItem('token');
-      if (!token) return;
+      if (!token) {
+        console.log('❌ No token found');
+        return;
+      }
 
       const backendUrl = getBackendUrl();
-      console.log('Connecting to socket at:', backendUrl);
+      console.log('🔄 Connecting to socket at:', backendUrl);
+      console.log('👤 User:', { id: user._id || user.id, name: user.name });
 
       const newSocket = io(backendUrl, {
         auth: { token },
@@ -143,7 +150,7 @@ export const SocketProvider = ({ children }) => {
         setTypingUsers([]);
       }
     }
-  }, [user, loading]);
+  }, [user?._id || user?.id, loading]); // Use user ID to prevent reconnections from user object changes
 
   const joinRoom = (roomId, subject) => {
     if (socket && connected) {

@@ -3,14 +3,18 @@ import { useSocket } from '../context/SocketContext';
 import { useAuth } from '../context/AuthContext';
 import { 
   Send, ArrowLeft, Users, Hash, Crown, 
-  Star, Zap, Smile, MoreVertical, Share2 
+  Star, Zap, Smile, MoreVertical, Share2, Video, UserPlus 
 } from 'lucide-react';
 import ShareModal from './ShareModal';
+import VideoCall from './VideoCall';
+import VideoCallInvite from './VideoCallInvite';
 
 const ChatRoom = ({ room, onBack }) => {
   const [message, setMessage] = useState('');
   const [isTyping, setIsTyping] = useState(false);
   const [shareModalOpen, setShareModalOpen] = useState(false);
+  const [videoCallActive, setVideoCallActive] = useState(false);
+  const [videoInviteOpen, setVideoInviteOpen] = useState(false);
   const messagesEndRef = useRef(null);
   const typingTimeoutRef = useRef(null);
   
@@ -98,174 +102,244 @@ const ChatRoom = ({ room, onBack }) => {
     return user?._id || user?.id;
   };
 
+  const startVideoCall = () => {
+    setVideoCallActive(true);
+  };
+
+  const leaveVideoCall = () => {
+    setVideoCallActive(false);
+  };
+
+  const openVideoInvite = () => {
+    setVideoInviteOpen(true);
+  };
+
+  if (!room) {
+    return (
+      <div className="flex items-center justify-center h-full">
+        <div className="text-center">
+          <Hash className="w-16 h-16 text-white/40 mx-auto mb-4" />
+          <p className="text-white/60">Select a room to start chatting</p>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <>
-      <div className="lg:col-span-4">
-        <div className="bg-white/10 backdrop-blur-sm border border-white/20 rounded-xl overflow-hidden h-[600px] flex flex-col">
-          {/* Header */}
-          <div className="p-4 border-b border-white/20 flex items-center justify-between">
-            <div className="flex items-center space-x-4">
-              <button
-                onClick={onBack}
-                className="text-white/60 hover:text-white transition-colors"
-              >
-                <ArrowLeft className="w-5 h-5" />
-              </button>
-              <div className="flex items-center space-x-2">
-                <Hash className="w-5 h-5 text-purple-400" />
-                <div>
-                  <h3 className="text-white font-medium">{room.name}</h3>
-                  <p className="text-white/60 text-sm">{room.subject}</p>
-                </div>
-              </div>
+      {/* Video Call Overlay */}
+      <VideoCall
+        room={room}
+        user={user}
+        onLeaveCall={leaveVideoCall}
+        isVisible={videoCallActive}
+      />
+
+      {/* Chat Interface */}
+      <div className={`flex flex-col h-full bg-white/5 backdrop-blur-sm border border-white/20 rounded-xl ${videoCallActive ? 'hidden' : ''}`}>
+        {/* Header */}
+        <div className="p-4 border-b border-white/20 flex items-center justify-between">
+          <div className="flex items-center space-x-3">
+            <button
+              onClick={onBack}
+              className="lg:hidden text-white/60 hover:text-white transition-colors"
+            >
+              <ArrowLeft className="w-5 h-5" />
+            </button>
+            
+            <div className="bg-gradient-to-r from-purple-600 to-pink-600 p-2 rounded-lg">
+              <Hash className="w-5 h-5 text-white" />
             </div>
             
-            <div className="flex items-center space-x-4">
-              <div className="flex items-center space-x-2 text-white/60">
-                <Users className="w-4 h-4" />
-                <span>{activeUsers.length}</span>
-              </div>
-              
-              {/* Share Button */}
-              <button
-                onClick={() => setShareModalOpen(true)}
-                className="bg-white/10 hover:bg-white/20 border border-white/20 rounded-lg p-2 transition-all duration-200"
-                title="Share room"
-              >
-                <Share2 className="w-4 h-4 text-white" />
-              </button>
+            <div>
+              <h2 className="text-white font-semibold">{room.name}</h2>
+              <p className="text-white/60 text-sm">{room.subject}</p>
             </div>
           </div>
+          
+          <div className="flex items-center space-x-2">
+            {/* Video Call Button */}
+            <button
+              onClick={startVideoCall}
+              className="bg-green-600 hover:bg-green-700 text-white p-2 rounded-lg transition-colors flex items-center space-x-2"
+              title="Start Video Call"
+            >
+              <Video className="w-4 h-4" />
+              <span className="hidden sm:inline text-sm">Join Call</span>
+            </button>
 
-          <div className="flex flex-1 overflow-hidden">
-            {/* Messages */}
-            <div className="flex-1 flex flex-col">
-              {/* Messages List */}
-              <div className="flex-1 overflow-y-auto p-4 space-y-4">
-                {messages.map((msg, index) => {
-                  const isCurrentUser = msg.userId?._id === getCurrentUserId() || msg.userId === getCurrentUserId();
-                  
-                  return (
-                    <div key={msg._id || index}>
-                      {msg.messageType === 'system' ? (
-                        <div className="text-center">
-                          <span className="bg-white/10 px-3 py-1 rounded-full text-white/60 text-sm">
-                            {msg.content}
-                          </span>
-                        </div>
-                      ) : (
-                        <div className={`flex ${isCurrentUser ? 'justify-end' : 'justify-start'}`}>
-                          <div className={`max-w-xs lg:max-w-md ${
-                            isCurrentUser 
-                              ? 'bg-purple-600' 
-                              : 'bg-white/10'
-                          } rounded-lg p-3`}>
-                            {!isCurrentUser && msg.userId && (
-                              <div className="flex items-center space-x-2 mb-1">
-                                {msg.userId.avatar ? (
-                                  <img 
-                                    src={msg.userId.avatar} 
-                                    alt={msg.userId.name}
-                                    className="w-5 h-5 rounded-full"
-                                  />
-                                ) : (
-                                  <div className="w-5 h-5 bg-gradient-to-r from-purple-500 to-pink-500 rounded-full flex items-center justify-center text-white text-xs font-bold">
-                                    {msg.userId.name?.charAt(0) || 'U'}
-                                  </div>
-                                )}
-                                <span className="text-white/80 text-sm font-medium">
-                                  {msg.userId.name || 'Unknown User'}
-                                </span>
-                                {getLevelIcon(msg.userId.level || 1)}
-                                <span className="text-white/60 text-xs">
-                                  Lv.{msg.userId.level || 1}
-                                </span>
-                              </div>
-                            )}
-                            <p className="text-white">{msg.content}</p>
-                            <p className="text-white/60 text-xs mt-1">
-                              {formatTime(msg.createdAt)}
-                            </p>
-                          </div>
-                        </div>
-                      )}
-                    </div>
-                  );
-                })}
+            {/* Invite to Video Call */}
+            <button
+              onClick={openVideoInvite}
+              className="bg-blue-600 hover:bg-blue-700 text-white p-2 rounded-lg transition-colors"
+              title="Invite to Video Call"
+            >
+              <UserPlus className="w-4 h-4" />
+            </button>
 
-                {/* Typing Indicator */}
-                {typingUsers.length > 0 && (
-                  <div className="flex justify-start">
-                    <div className="bg-white/10 rounded-lg p-3 max-w-xs">
-                      <p className="text-white/60 text-sm">
-                        {typingUsers.map(u => u.name).join(', ')} {typingUsers.length === 1 ? 'is' : 'are'} typing...
-                      </p>
-                    </div>
-                  </div>
-                )}
-
-                <div ref={messagesEndRef} />
-              </div>
-
-              {/* Message Input */}
-              <form onSubmit={handleSendMessage} className="p-4 border-t border-white/20">
-                <div className="flex space-x-2">
-                  <input
-                    type="text"
-                    value={message}
-                    onChange={handleTyping}
-                    placeholder="Type your message..."
-                    className="flex-1 bg-white/10 border border-white/20 rounded-lg px-4 py-2 text-white placeholder-white/50 focus:outline-none focus:border-purple-500"
-                    maxLength={1000}
-                  />
-                  <button
-                    type="submit"
-                    disabled={!message.trim()}
-                    className="bg-purple-600 hover:bg-purple-700 disabled:bg-gray-600 text-white p-2 rounded-lg transition-colors duration-200"
-                  >
-                    <Send className="w-5 h-5" />
-                  </button>
-                </div>
-              </form>
+            <div className="flex items-center space-x-2 bg-white/10 rounded-lg px-3 py-2">
+              <Users className="w-4 h-4 text-white/60" />
+              <span className="text-white text-sm">{activeUsers.length}</span>
             </div>
+            
+            <button
+              onClick={() => setShareModalOpen(true)}
+              className="text-white/60 hover:text-white transition-colors p-2"
+              title="Share Room"
+            >
+              <Share2 className="w-4 h-4" />
+            </button>
+            
+            <button className="text-white/60 hover:text-white transition-colors p-2">
+              <MoreVertical className="w-4 h-4" />
+            </button>
+          </div>
+        </div>
 
-            {/* Active Users Sidebar */}
-            <div className="w-64 border-l border-white/20 p-4">
-              <h4 className="text-white font-medium mb-4">
-                Active Users ({activeUsers.length})
-              </h4>
-              <div className="space-y-2">
-                {activeUsers.map(activeUser => (
-                  <div key={activeUser._id} className="flex items-center space-x-3 p-2 rounded-lg hover:bg-white/10">
-                    {activeUser.avatar ? (
-                      <img 
-                        src={activeUser.avatar} 
-                        alt={activeUser.name}
-                        className="w-8 h-8 rounded-full"
-                      />
-                    ) : (
-                      <div className="w-8 h-8 bg-gradient-to-r from-purple-500 to-pink-500 rounded-full flex items-center justify-center text-white text-sm font-bold">
-                        {activeUser.name?.charAt(0) || 'U'}
-                      </div>
-                    )}
-                    <div className="flex-1 min-w-0">
-                      <p className="text-white text-sm font-medium truncate">
-                        {activeUser.name || 'Unknown User'}
-                      </p>
-                      <div className="flex items-center space-x-1">
-                        {getLevelIcon(activeUser.level || 1)}
-                        <span className="text-white/60 text-xs">
-                          Level {activeUser.level || 1}
+        {/* Messages Area */}
+        <div className="flex-1 overflow-y-auto p-4 space-y-4">
+          {messages.map((msg) => {
+            const isOwnMessage = msg.userId._id === getCurrentUserId() || msg.userId === getCurrentUserId();
+            
+            return (
+              <div
+                key={msg._id}
+                className={`flex ${isOwnMessage ? 'justify-end' : 'justify-start'}`}
+              >
+                <div className={`flex items-start space-x-3 max-w-xs lg:max-w-md ${isOwnMessage ? 'flex-row-reverse space-x-reverse' : ''}`}>
+                  {!isOwnMessage && (
+                    <div className="flex-shrink-0">
+                      <div className="w-8 h-8 bg-gradient-to-r from-purple-600 to-pink-600 rounded-full flex items-center justify-center">
+                        <span className="text-white text-sm font-semibold">
+                          {msg.userId.name?.charAt(0).toUpperCase() || 'U'}
                         </span>
                       </div>
                     </div>
+                  )}
+                  
+                  <div className={`flex flex-col ${isOwnMessage ? 'items-end' : 'items-start'}`}>
+                    {!isOwnMessage && (
+                      <div className="flex items-center space-x-2 mb-1">
+                        <span className="text-white/80 text-sm font-medium">
+                          {msg.userId.name || 'Unknown User'}
+                        </span>
+                        {getLevelIcon(msg.userId.level || 1)}
+                        <span className="text-white/40 text-xs">
+                          {formatTime(msg.createdAt)}
+                        </span>
+                      </div>
+                    )}
+                    
+                    <div
+                      className={`rounded-2xl px-4 py-2 ${
+                        isOwnMessage
+                          ? 'bg-gradient-to-r from-purple-600 to-pink-600 text-white'
+                          : 'bg-white/10 text-white'
+                      }`}
+                    >
+                      <p className="text-sm">{msg.content}</p>
+                      {isOwnMessage && (
+                        <p className="text-xs text-white/60 mt-1 text-right">
+                          {formatTime(msg.createdAt)}
+                        </p>
+                      )}
+                    </div>
                   </div>
-                ))}
+                </div>
               </div>
+            );
+          })}
+          
+          {/* Typing Indicators */}
+          {typingUsers.length > 0 && (
+            <div className="flex items-center space-x-2 text-white/60 text-sm">
+              <div className="flex space-x-1">
+                <div className="w-2 h-2 bg-purple-400 rounded-full animate-bounce"></div>
+                <div className="w-2 h-2 bg-purple-400 rounded-full animate-bounce" style={{ animationDelay: '0.1s' }}></div>
+                <div className="w-2 h-2 bg-purple-400 rounded-full animate-bounce" style={{ animationDelay: '0.2s' }}></div>
+              </div>
+              <span>
+                {typingUsers.length === 1 
+                  ? `${typingUsers[0].name} is typing...`
+                  : `${typingUsers.length} people are typing...`
+                }
+              </span>
+            </div>
+          )}
+          
+          <div ref={messagesEndRef} />
+        </div>
+
+        {/* Message Input */}
+        <div className="p-4 border-t border-white/20">
+          <form onSubmit={handleSendMessage} className="flex items-center space-x-3">
+            <button
+              type="button"
+              className="text-white/60 hover:text-white transition-colors"
+            >
+              <Smile className="w-5 h-5" />
+            </button>
+            
+            <div className="flex-1 relative">
+              <input
+                type="text"
+                value={message}
+                onChange={handleTyping}
+                placeholder="Type a message..."
+                className="w-full bg-white/10 border border-white/20 rounded-full px-4 py-2 text-white placeholder-white/40 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+              />
+            </div>
+            
+            <button
+              type="submit"
+              disabled={!message.trim()}
+              className="bg-gradient-to-r from-purple-600 to-pink-600 text-white p-2 rounded-full hover:from-purple-700 hover:to-pink-700 transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              <Send className="w-5 h-5" />
+            </button>
+          </form>
+        </div>
+
+        {/* Active Users Sidebar */}
+        <div className="hidden xl:block w-64 border-l border-white/20 p-4">
+          <div className="mb-4">
+            <h3 className="text-white font-semibold mb-3 flex items-center">
+              <Users className="w-4 h-4 mr-2" />
+              Active Users ({activeUsers.length})
+            </h3>
+            
+            <div className="space-y-2">
+              {activeUsers.map((activeUser) => (
+                <div key={activeUser._id} className="flex items-center space-x-3 p-2 rounded-lg bg-white/5">
+                  <div className="w-8 h-8 bg-gradient-to-r from-purple-600 to-pink-600 rounded-full flex items-center justify-center">
+                    <span className="text-white text-sm font-semibold">
+                      {activeUser.name?.charAt(0).toUpperCase() || 'U'}
+                    </span>
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <p className="text-white text-sm font-medium truncate">
+                      {activeUser.name || 'Unknown User'}
+                    </p>
+                    <div className="flex items-center space-x-1">
+                      {getLevelIcon(activeUser.level || 1)}
+                      <span className="text-white/60 text-xs">
+                        Level {activeUser.level || 1}
+                      </span>
+                    </div>
+                  </div>
+                </div>
+              ))}
             </div>
           </div>
         </div>
       </div>
+
+      {/* Video Call Invite Modal */}
+      <VideoCallInvite
+        room={room}
+        isVisible={videoInviteOpen}
+        onClose={() => setVideoInviteOpen(false)}
+      />
 
       {/* Share Modal */}
       <ShareModal

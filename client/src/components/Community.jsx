@@ -1,14 +1,12 @@
 import React, { useState, useEffect } from 'react';
+import { useSearchParams } from 'react-router-dom';
+import { MessageCircle, Users, Trophy, Plus, Video } from 'lucide-react';
 import { useSocket } from '../context/SocketContext';
 import { useAuth } from '../context/AuthContext';
-import { useSearchParams } from 'react-router-dom';
-import { 
-  MessageCircle, Users, Trophy, Send, Smile, 
-  Hash, Crown, Star, Zap, UserPlus, UserMinus, Plus 
-} from 'lucide-react';
-import ChatRoom from './ChatRoom';
 import RoomList from './RoomList';
+import ChatRoom from './ChatRoom';
 import CreateRoomModal from './CreateRoomModal';
+import Leaderboard from './Leaderboard';
 
 const Community = () => {
   const [activeTab, setActiveTab] = useState('rooms');
@@ -18,8 +16,9 @@ const Community = () => {
   const [userGrade, setUserGrade] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
-  const [showCreateModal, setShowCreateModal] = useState(false);
-  const { connected, currentRoom } = useSocket();
+  const [createRoomModalOpen, setCreateRoomModalOpen] = useState(false);
+  
+  const { connected, connectionError } = useSocket();
   const { user } = useAuth();
   const [searchParams] = useSearchParams();
 
@@ -152,190 +151,153 @@ const Community = () => {
           </p>
           
           {/* Connection Status */}
-          <div className={`inline-flex items-center mt-4 px-4 py-2 rounded-full ${
-            connected ? 'bg-green-500/20 text-green-300' : 'bg-red-500/20 text-red-300'
-          }`}>
-            <div className={`w-2 h-2 rounded-full mr-2 ${
-              connected ? 'bg-green-400' : 'bg-red-400'
-            }`}></div>
-            {connected ? 'Connected' : 'Disconnected'}
+          <div className="mt-4 flex justify-center">
+            <div className={`flex items-center space-x-2 px-4 py-2 rounded-full ${
+              connected ? 'bg-green-500/20 text-green-300' : 'bg-red-500/20 text-red-300'
+            }`}>
+              <div className={`w-2 h-2 rounded-full ${connected ? 'bg-green-400' : 'bg-red-400'}`}></div>
+              <span className="text-sm">
+                {connected ? 'Connected' : connectionError || 'Disconnected'}
+              </span>
+            </div>
           </div>
 
-          {/* Error Display */}
-          {error && (
-            <div className="mt-4 bg-red-500/20 border border-red-500/30 rounded-lg p-3 text-red-300">
-              {error}
+          {/* Features */}
+          <div className="mt-6 flex justify-center space-x-6 text-white/60">
+            <div className="flex items-center space-x-2">
+              <MessageCircle className="w-4 h-4" />
+              <span className="text-sm">Real-time Chat</span>
             </div>
-          )}
+            <div className="flex items-center space-x-2">
+              <Video className="w-4 h-4" />
+              <span className="text-sm">Video Calls</span>
+            </div>
+            <div className="flex items-center space-x-2">
+              <Users className="w-4 h-4" />
+              <span className="text-sm">Study Groups</span>
+            </div>
+          </div>
         </div>
 
         {/* Navigation Tabs */}
-        <div className="flex justify-center mb-6">
-          <div className="bg-white/10 backdrop-blur-sm rounded-xl p-1 flex space-x-1">
-            {[
-              { key: 'rooms', label: 'Chat Rooms', icon: Hash },
-              { key: 'chat', label: 'Active Chat', icon: MessageCircle },
-              { key: 'leaderboard', label: 'Leaderboard', icon: Trophy }
-            ].map(tab => {
-              const Icon = tab.icon;
-              return (
-                <button
-                  key={tab.key}
-                  onClick={() => setActiveTab(tab.key)}
-                  className={`px-6 py-3 rounded-lg font-medium transition-all duration-300 flex items-center space-x-2 ${
-                    activeTab === tab.key
-                      ? 'bg-purple-600 text-white shadow-lg'
-                      : 'text-white/70 hover:text-white hover:bg-white/10'
-                  }`}
-                >
-                  <Icon className="w-4 h-4" />
-                  <span>{tab.label}</span>
-                </button>
-              );
-            })}
+        <div className="flex justify-center mb-8">
+          <div className="bg-white/10 backdrop-blur-sm border border-white/20 rounded-xl p-1 flex space-x-1">
+            <button
+              onClick={() => setActiveTab('rooms')}
+              className={`px-6 py-3 rounded-lg transition-all duration-200 flex items-center space-x-2 ${
+                activeTab === 'rooms'
+                  ? 'bg-gradient-to-r from-purple-600 to-pink-600 text-white shadow-lg'
+                  : 'text-white/60 hover:text-white hover:bg-white/10'
+              }`}
+            >
+              <MessageCircle className="w-4 h-4" />
+              <span>Chat Rooms</span>
+            </button>
+            
+            {selectedRoom && (
+              <button
+                onClick={() => setActiveTab('chat')}
+                className={`px-6 py-3 rounded-lg transition-all duration-200 flex items-center space-x-2 ${
+                  activeTab === 'chat'
+                    ? 'bg-gradient-to-r from-purple-600 to-pink-600 text-white shadow-lg'
+                    : 'text-white/60 hover:text-white hover:bg-white/10'
+                }`}
+              >
+                <Video className="w-4 h-4" />
+                <span>{selectedRoom.name}</span>
+              </button>
+            )}
+            
+            <button
+              onClick={() => setActiveTab('leaderboard')}
+              className={`px-6 py-3 rounded-lg transition-all duration-200 flex items-center space-x-2 ${
+                activeTab === 'leaderboard'
+                  ? 'bg-gradient-to-r from-purple-600 to-pink-600 text-white shadow-lg'
+                  : 'text-white/60 hover:text-white hover:bg-white/10'
+              }`}
+            >
+              <Trophy className="w-4 h-4" />
+              <span>Leaderboard</span>
+            </button>
           </div>
         </div>
 
-        {/* Quick Actions */}
-        {activeTab === 'rooms' && (
-          <div className="flex justify-center mb-6">
-            <button
-              onClick={() => setShowCreateModal(true)}
-              className="bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 text-white font-medium px-6 py-3 rounded-xl transition-all duration-300 flex items-center space-x-2 shadow-lg hover:shadow-xl transform hover:scale-105"
-            >
-              <Plus className="w-5 h-5" />
-              <span>Create Room</span>
-            </button>
-          </div>
-        )}
-
-        {/* Content */}
-        <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
+        {/* Content Area */}
+        <div className="grid grid-cols-1 lg:grid-cols-5 gap-6">
           {activeTab === 'rooms' && (
-            <RoomList 
-              rooms={rooms} 
-              onRoomSelect={handleRoomSelect}
-              onRefresh={fetchRooms}
-              loading={loading}
-              error={error}
-            />
+            <>
+              <RoomList 
+                rooms={rooms} 
+                onRoomSelect={handleRoomSelect}
+                onRefresh={fetchRooms}
+              />
+              
+              {/* Create Room Button */}
+              <div className="lg:col-span-1">
+                <div className="bg-white/10 backdrop-blur-sm border border-white/20 rounded-xl p-6">
+                  <h3 className="text-white font-semibold mb-4">Quick Actions</h3>
+                  <button
+                    onClick={() => setCreateRoomModalOpen(true)}
+                    className="w-full bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 text-white px-4 py-3 rounded-lg transition-all duration-200 flex items-center justify-center space-x-2"
+                  >
+                    <Plus className="w-4 h-4" />
+                    <span>Create Room</span>
+                  </button>
+                </div>
+              </div>
+            </>
           )}
           
           {activeTab === 'chat' && selectedRoom && (
-            <ChatRoom 
-              room={selectedRoom}
-              onBack={() => setActiveTab('rooms')}
-            />
+            <div className="lg:col-span-5">
+              <ChatRoom 
+                room={selectedRoom} 
+                onBack={() => setActiveTab('rooms')}
+              />
+            </div>
           )}
           
           {activeTab === 'leaderboard' && (
-            <div className="lg:col-span-4">
-              <div className="bg-white/10 backdrop-blur-sm border border-white/20 rounded-xl p-6">
-                <div className="text-center mb-6">
-                  <h2 className="text-2xl font-bold text-white mb-2">
-                    🏆 Class Leaderboard
-                  </h2>
-                  {userGrade && (
-                    <div className="inline-flex items-center space-x-2 bg-purple-600/20 border border-purple-500/30 rounded-full px-4 py-2">
-                      <Trophy className="w-4 h-4 text-purple-300" />
-                      <span className="text-purple-200 font-medium">Grade {userGrade} Competition</span>
-                    </div>
-                  )}
-                </div>
-                {leaderboard.length > 0 ? (
-                  <div className="space-y-4">
-                    {leaderboard.map((player, index) => (
-                      <div 
-                        key={player._id}
-                        className={`flex items-center justify-between p-4 rounded-xl ${
-                          index === 0 ? 'bg-yellow-500/20 border border-yellow-500/30' :
-                          index === 1 ? 'bg-gray-400/20 border border-gray-400/30' :
-                          index === 2 ? 'bg-orange-500/20 border border-orange-500/30' :
-                          'bg-white/5'
-                        }`}
-                      >
-                        <div className="flex items-center space-x-4">
-                          <div className={`w-10 h-10 rounded-full flex items-center justify-center font-bold ${
-                            index === 0 ? 'bg-yellow-500 text-yellow-900' :
-                            index === 1 ? 'bg-gray-400 text-gray-900' :
-                            index === 2 ? 'bg-orange-500 text-orange-900' :
-                            'bg-purple-600 text-white'
-                          }`}>
-                            {index < 3 ? (
-                              index === 0 ? <Crown className="w-5 h-5" /> :
-                              index === 1 ? <Star className="w-5 h-5" /> :
-                              <Zap className="w-5 h-5" />
-                            ) : (
-                              index + 1
-                            )}
-                          </div>
-                          
-                          <div className="flex items-center space-x-3">
-                            {player.avatar ? (
-                              <img 
-                                src={player.avatar} 
-                                alt={player.name}
-                                className="w-10 h-10 rounded-full"
-                              />
-                            ) : (
-                              <div className="w-10 h-10 bg-gradient-to-r from-purple-500 to-pink-500 rounded-full flex items-center justify-center text-white font-bold">
-                                {player.name?.charAt(0) || 'U'}
-                              </div>
-                            )}
-                            
-                            <div>
-                              <p className="text-white font-medium">{player.name || 'Unknown'}</p>
-                              <div className="flex items-center space-x-2 text-sm">
-                                <span className="text-white/60">Level {player.level || 0}</span>
-                                {player.grade && (
-                                  <>
-                                    <span className="text-white/40">•</span>
-                                    <span className="text-purple-300">Grade {player.grade}</span>
-                                  </>
-                                )}
-                              </div>
-                            </div>
-                          </div>
-                        </div>
-                        
-                        <div className="text-right">
-                          <p className="text-white font-bold">{player.points || 0} XP</p>
-                          <p className="text-white/60 text-sm">{player.completedQuizzes || 0} quizzes</p>
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                ) : (
-                  <div className="text-center py-12">
-                    <Trophy className="w-12 h-12 text-white/40 mx-auto mb-4" />
-                    <p className="text-white/60 mb-2">No leaderboard data available</p>
-                    {userGrade && (
-                      <p className="text-white/40 text-sm">
-                        Complete quizzes and activities to compete with your Grade {userGrade} classmates!
-                      </p>
-                    )}
-                  </div>
-                )}
-                
-                {leaderboard.length > 0 && (
-                  <div className="mt-6 text-center">
-                    <p className="text-white/50 text-sm">
-                      🎯 Compete with students from your grade level • Complete quizzes and activities to earn XP!
-                    </p>
-                  </div>
-                )}
-              </div>
+            <div className="lg:col-span-5">
+              <Leaderboard 
+                leaderboard={leaderboard}
+                userGrade={userGrade}
+                currentUser={user}
+              />
             </div>
           )}
         </div>
-      </div>
 
-      {/* Create Room Modal */}
-      <CreateRoomModal
-        isOpen={showCreateModal}
-        onClose={() => setShowCreateModal(false)}
-        onRoomCreated={handleRoomCreated}
-      />
+        {/* Create Room Modal */}
+        <CreateRoomModal
+          isOpen={createRoomModalOpen}
+          onClose={() => setCreateRoomModalOpen(false)}
+          onRoomCreated={handleRoomCreated}
+        />
+
+        {/* Loading State */}
+        {loading && (
+          <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50">
+            <div className="bg-white/10 backdrop-blur-sm border border-white/20 rounded-xl p-8 text-center">
+              <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-purple-600 mx-auto mb-4"></div>
+              <p className="text-white">Loading community...</p>
+            </div>
+          </div>
+        )}
+
+        {/* Error State */}
+        {error && (
+          <div className="fixed bottom-4 right-4 bg-red-500/20 border border-red-500/30 rounded-lg p-4 text-red-300 max-w-md">
+            <p className="text-sm">{error}</p>
+            <button 
+              onClick={() => setError(null)}
+              className="mt-2 text-xs text-red-200 hover:text-red-100"
+            >
+              Dismiss
+            </button>
+          </div>
+        )}
+      </div>
     </div>
   );
 };

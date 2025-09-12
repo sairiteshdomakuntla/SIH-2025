@@ -9,7 +9,7 @@ import Register from './components/Register';
 import Dashboard from './components/Dashboard';
 import Profile from './components/Profile';
 import Community from './components/Community';
-
+import Resources from './components/Resources';
 import QuizGenerator from './components/QuizGenerator';
 import Simulations from './components/Simulations';
 import SimulationView from './components/SimulationView';
@@ -140,6 +140,11 @@ function App() {
         {
           path: 'leaderboard',
           element: isAuthenticated ? <LeaderboardPage /> : <Navigate to="/login" />,
+          loader: protectedLoader
+        },
+        {
+          path: 'resources',
+          element: isAuthenticated ? <Resources /> : <Navigate to="/login" />,
           loader: protectedLoader
         }
       ]

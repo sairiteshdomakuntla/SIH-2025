@@ -5,12 +5,13 @@ const authenticateToken = require('../middleware/authMiddleware');
 const DailyQuestion = require('../models/DailyQuestion');
 
 // Get today's daily question
+
 router.get('/today', authenticateToken, async (req, res) => {
   try {
     const userId = req.user.userId;
-   
+    console.log("first",userId)
     const result = await dailyQuestionService.getTodayQuestion(userId);
-
+console.log(result);
     if (!result || !result.question) {
       return res.status(404).json({
         success: false,
@@ -31,6 +32,7 @@ router.get('/today', authenticateToken, async (req, res) => {
     });
   }
 });
+
 
 // Submit daily question answer
 router.post('/submit', authenticateToken, async (req, res) => {

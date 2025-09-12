@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Hash, Users, MessageSquare, Plus, Share2 } from 'lucide-react';
+import { Hash, Users, MessageSquare, Plus, Share2, Video } from 'lucide-react';
 import ShareModal from './ShareModal';
 
 const RoomList = ({ rooms, onRoomSelect, onRefresh }) => {
@@ -42,43 +42,50 @@ const RoomList = ({ rooms, onRoomSelect, onRefresh }) => {
             {rooms.map(room => (
               <div
                 key={room.roomId}
-                className="bg-white/10 hover:bg-white/20 border border-white/20 rounded-xl p-4 cursor-pointer transition-all duration-300 hover:shadow-lg hover:scale-105 relative group"
+                onClick={() => onRoomSelect(room)}
+                className="bg-white/5 hover:bg-white/10 border border-white/20 rounded-xl p-4 cursor-pointer transition-all duration-200 group"
               >
-                {/* Share Button */}
-                <button
-                  onClick={(e) => handleShareRoom(e, room)}
-                  className="absolute top-3 right-3 bg-white/10 hover:bg-white/20 border border-white/20 rounded-lg p-2 opacity-0 group-hover:opacity-100 transition-all duration-200 z-10"
-                  title="Share room"
-                >
-                  <Share2 className="w-4 h-4 text-white" />
-                </button>
-
-                {/* Room Content */}
-                <div onClick={() => onRoomSelect(room)}>
-                  <div className="flex items-center space-x-3 mb-3">
-                    <div className={`w-10 h-10 rounded-full bg-gradient-to-r ${subjectColors[room.subject] || subjectColors.General} flex items-center justify-center`}>
-                      <Hash className="w-5 h-5 text-white" />
-                    </div>
-                    <div>
-                      <h3 className="text-white font-medium">{room.name}</h3>
-                      <p className="text-white/60 text-sm">{room.subject}</p>
-                    </div>
+                <div className="flex items-start justify-between mb-3">
+                  <div className={`bg-gradient-to-r ${subjectColors[room.subject] || subjectColors.General} p-2 rounded-lg`}>
+                    <Hash className="w-4 h-4 text-white" />
                   </div>
-                  
-                  {room.description && (
-                    <p className="text-white/80 text-sm mb-3">{room.description}</p>
-                  )}
-                  
-                  <div className="flex justify-between items-center text-sm">
-                    <div className="flex items-center space-x-1 text-white/60">
+                  <div className="flex items-center space-x-1">
+                    <button
+                      onClick={(e) => handleShareRoom(e, room)}
+                      className="opacity-0 group-hover:opacity-100 text-white/60 hover:text-white transition-all duration-200 p-1"
+                      title="Share Room"
+                    >
+                      <Share2 className="w-4 h-4" />
+                    </button>
+                  </div>
+                </div>
+                
+                <h3 className="text-white font-semibold mb-2 line-clamp-1">
+                  {room.name}
+                </h3>
+                
+                <p className="text-white/60 text-sm mb-3 line-clamp-2">
+                  {room.description || `Join the ${room.subject} discussion`}
+                </p>
+                
+                <div className="flex items-center justify-between text-xs text-white/60">
+                  <div className="flex items-center space-x-3">
+                    <div className="flex items-center space-x-1">
                       <Users className="w-4 h-4" />
-                      <span>{room.activeUsersCount} active</span>
+                      <span>{room.activeUsersCount || 0}</span>
                     </div>
-                    <div className="flex items-center space-x-1 text-white/60">
+                    <div className="flex items-center space-x-1">
                       <MessageSquare className="w-4 h-4" />
-                      <span>{room.totalMessages} messages</span>
+                      <span>{room.totalMessages || 0}</span>
+                    </div>
+                    <div className="flex items-center space-x-1">
+                      <Video className="w-4 h-4" />
+                      <span className="text-green-400">Available</span>
                     </div>
                   </div>
+                  <span className="bg-white/10 px-2 py-1 rounded text-xs">
+                    {room.subject}
+                  </span>
                 </div>
               </div>
             ))}

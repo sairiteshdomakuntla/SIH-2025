@@ -1,774 +1,582 @@
-import React, { useState, useEffect, useRef, useCallback } from 'react';
-import { useNavigate, useParams } from 'react-router-dom';
-import { 
-  Save, X, Star, Share2, Lock, Eye, Book, Tag, Plus, Minus,
-  Type, Image, List, Quote, Code, Link2, FileText, Palette,
-  Bold, Italic, Underline, AlignLeft, AlignCenter, AlignRight,
-  Undo, Redo, Download, Upload, Settings, Sparkles, Trophy,
-  Zap, Shield, Crown, BookOpen, PenTool, Edit3, Layers,
-  MoreHorizontal, ChevronDown, Hash, Heading1, Heading2, Heading3
-} from 'lucide-react';
-import AutoText from './AutoText';
+// import React, { useState, useEffect,useRef } from 'react';
+// import { Save, FileText, Bold, Italic, List, Quote, Code, Image, Link, Eye, EyeOff, Loader2 } from 'lucide-react';
+// import { useAuth } from '../context/AuthContext';
+
+// const NoteEditor = ({ noteId, onSave, onCancel, initialNote }) => {
+//   const [title, setTitle] = useState(initialNote?.title || '');
+//   const [content, setContent] = useState(initialNote?.content || '');
+//   const [subject, setSubject] = useState(initialNote?.subject || '');
+//   const [tags, setTags] = useState(initialNote?.tags || []);
+//   const [tagInput, setTagInput] = useState('');
+//   const [isPrivate, setIsPrivate] = useState(initialNote?.isPrivate || false);
+//   const [preview, setPreview] = useState(false);
+//   const [saving, setSaving] = useState(false);
+//   const [error, setError] = useState('');
+//   const textareaRef = useRef(null);
+//   const { user } = useAuth();
+
+//   // Get backend URL
+//   const getBackendUrl = () => {
+//     return import.meta.env.VITE_BACKEND_URL || 'http://localhost:5000';
+//   };
+
+//   const subjects = [
+//     'Mathematics', 'Physics', 'Chemistry', 'Biology', 'English',
+//     'History', 'Geography', 'Computer Science', 'Economics', 'Other'
+//   ];
+
+//   const handleSave = async () => {
+//     if (!title.trim() || !content.trim()) {
+//       setError('Title and content are required');
+//       return;
+//     }
+
+//     if (!subject) {
+//       setError('Please select a subject');
+//       return;
+//     }
+
+//     setSaving(true);
+//     setError('');
+
+//     try {
+//       const token = localStorage.getItem('token');
+//       if (!token) {
+//         setError('Authentication required. Please log in again.');
+//         setSaving(false);
+//         return;
+//       }
+
+//       const noteData = {
+//         title: title.trim(),
+//         content: content.trim(),
+//         subject,
+//         tags,
+//         isPrivate
+//       };
+
+//       const url = noteId 
+//         ? `${getBackendUrl()}/api/notes/${noteId}`
+//         : `${getBackendUrl()}/api/notes`;
+      
+//       const method = noteId ? 'PUT' : 'POST';
+
+//       console.log('Saving note:', { url, method, noteData });
+
+//       const response = await fetch(url, {
+//         method,
+//         headers: {
+//           'Content-Type': 'application/json',
+//           'Authorization': `Bearer ${token}`
+//         },
+//         body: JSON.stringify(noteData)
+//       });
+
+//       // Check if response is ok
+//       if (!response.ok) {
+//         const errorText = await response.text();
+//         console.error('Save note error response:', response.status, errorText);
+//         throw new Error(`Failed to save note: ${response.status} ${response.statusText}`);
+//       }
+
+//       // Parse response
+//       const result = await response.json();
+//       console.log('Save note result:', result);
+
+//       // Check if result exists and has expected structure
+//       if (!result) {
+//         throw new Error('No response received from server');
+//       }
+
+//       if (result.success === false) {
+//         throw new Error(result.message || 'Failed to save note');
+//       }
+
+//       // Success
+//       console.log('Note saved successfully:', result);
+      
+//       if (onSave) {
+//         onSave(result.note || result.data);
+//       }
+
+//     } catch (error) {
+//       console.error('Error saving note:', error);
+//       setError(error.message || 'Failed to save note. Please try again.');
+//     } finally {
+//       setSaving(false);
+//     }
+//   };
+
+//   const handleAddTag = (e) => {
+//     if (e.key === 'Enter' && tagInput.trim()) {
+//       e.preventDefault();
+//       const newTag = tagInput.trim().toLowerCase();
+//       if (!tags.includes(newTag)) {
+//         setTags([...tags, newTag]);
+//       }
+//       setTagInput('');
+//     }
+//   };
+
+//   const removeTag = (tagToRemove) => {
+//     setTags(tags.filter(tag => tag !== tagToRemove));
+//   };
+
+//   const insertText = (before, after = '') => {
+//     const textarea = textareaRef.current;
+//     const start = textarea.selectionStart;
+//     const end = textarea.selectionEnd;
+//     const selectedText = content.substring(start, end);
+//     const newContent = content.substring(0, start) + before + selectedText + after + content.substring(end);
+//     setContent(newContent);
+    
+//     // Set cursor position
+//     setTimeout(() => {
+//       const newPosition = start + before.length + selectedText.length + after.length;
+//       textarea.setSelectionRange(newPosition, newPosition);
+//       textarea.focus();
+//     }, 0);
+//   };
+
+//   const formatMarkdown = (content) => {
+//     return content
+//       .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
+//       .replace(/\*(.*?)\*/g, '<em>$1</em>')
+//       .replace(/`(.*?)`/g, '<code>$1</code>')
+//       .replace(/^> (.*$)/gm, '<blockquote>$1</blockquote>')
+//       .replace(/^- (.*$)/gm, '<li>$1</li>')
+//       .replace(/(<li>.*<\/li>)/s, '<ul>$1</ul>')
+//       .replace(/\n/g, '<br>');
+//   };
+
+//   return (
+//     <div className="max-w-4xl mx-auto bg-white/10 backdrop-blur-sm border border-white/20 rounded-xl p-6">
+//       <div className="flex items-center justify-between mb-6">
+//         <div className="flex items-center space-x-3">
+//           <div className="bg-gradient-to-r from-blue-600 to-purple-600 p-2 rounded-lg">
+//             <FileText className="w-5 h-5 text-white" />
+//           </div>
+//           <h2 className="text-white font-semibold">
+//             {noteId ? 'Edit Note' : 'Create New Note'}
+//           </h2>
+//         </div>
+        
+//         <div className="flex items-center space-x-2">
+//           <button
+//             onClick={() => setPreview(!preview)}
+//             className="flex items-center space-x-2 px-3 py-1 bg-gray-600 hover:bg-gray-700 text-white rounded-lg transition-colors"
+//           >
+//             {preview ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+//             <span className="text-sm">{preview ? 'Edit' : 'Preview'}</span>
+//           </button>
+          
+//           <button
+//             onClick={handleSave}
+//             disabled={saving || !title.trim() || !content.trim()}
+//             className="flex items-center space-x-2 px-4 py-2 bg-green-600 hover:bg-green-700 disabled:bg-gray-500 text-white rounded-lg transition-colors"
+//           >
+//             {saving ? <Loader2 className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />}
+//             <span className="text-sm">{saving ? 'Saving...' : 'Save Note'}</span>
+//           </button>
+          
+//           {onCancel && (
+//             <button
+//               onClick={onCancel}
+//               className="px-4 py-2 text-white/60 hover:text-white transition-colors"
+//             >
+//               Cancel
+//             </button>
+//           )}
+//         </div>
+//       </div>
+
+//       {error && (
+//         <div className="mb-4 p-3 bg-red-500/20 border border-red-500/30 rounded-lg">
+//           <p className="text-red-300 text-sm">{error}</p>
+//         </div>
+//       )}
+
+//       <div className="space-y-4">
+//         {/* Title */}
+//         <div>
+//           <label className="block text-white/80 text-sm font-medium mb-2">
+//             Title *
+//           </label>
+//           <input
+//             type="text"
+//             value={title}
+//             onChange={(e) => setTitle(e.target.value)}
+//             placeholder="Enter note title..."
+//             className="w-full px-3 py-2 bg-white/10 border border-white/20 rounded-lg text-white placeholder-white/40 focus:outline-none focus:ring-2 focus:ring-blue-500"
+//           />
+//         </div>
+
+//         {/* Subject and Privacy */}
+//         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+//           <div>
+//             <label className="block text-white/80 text-sm font-medium mb-2">
+//               Subject *
+//             </label>
+//             <select
+//               value={subject}
+//               onChange={(e) => setSubject(e.target.value)}
+//               className="w-full px-3 py-2 bg-white/10 border border-white/20 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
+//             >
+//               <option value="">Select subject</option>
+//               {subjects.map(sub => (
+//                 <option key={sub} value={sub} className="bg-gray-800">{sub}</option>
+//               ))}
+//             </select>
+//           </div>
+          
+//           <div className="flex items-center space-x-4 pt-6">
+//             <label className="flex items-center space-x-2">
+//               <input
+//                 type="checkbox"
+//                 checked={isPrivate}
+//                 onChange={(e) => setIsPrivate(e.target.checked)}
+//                 className="w-4 h-4 text-blue-600 bg-white/10 border-white/20 rounded focus:ring-blue-500"
+//               />
+//               <span className="text-white/80 text-sm">Private note</span>
+//             </label>
+//           </div>
+//         </div>
+
+//         {/* Formatting Toolbar */}
+//         {!preview && (
+//           <div className="flex items-center space-x-2 p-2 bg-white/5 rounded-lg border border-white/10">
+//             <button
+//               onClick={() => insertText('**', '**')}
+//               className="p-2 text-white/60 hover:text-white hover:bg-white/10 rounded transition-colors"
+//               title="Bold"
+//             >
+//               <Bold className="w-4 h-4" />
+//             </button>
+//             <button
+//               onClick={() => insertText('*', '*')}
+//               className="p-2 text-white/60 hover:text-white hover:bg-white/10 rounded transition-colors"
+//               title="Italic"
+//             >
+//               <Italic className="w-4 h-4" />
+//             </button>
+//             <button
+//               onClick={() => insertText('`', '`')}
+//               className="p-2 text-white/60 hover:text-white hover:bg-white/10 rounded transition-colors"
+//               title="Code"
+//             >
+//               <Code className="w-4 h-4" />
+//             </button>
+//             <button
+//               onClick={() => insertText('> ')}
+//               className="p-2 text-white/60 hover:text-white hover:bg-white/10 rounded transition-colors"
+//               title="Quote"
+//             >
+//               <Quote className="w-4 h-4" />
+//             </button>
+//             <button
+//               onClick={() => insertText('- ')}
+//               className="p-2 text-white/60 hover:text-white hover:bg-white/10 rounded transition-colors"
+//               title="List"
+//             >
+//               <List className="w-4 h-4" />
+//             </button>
+//           </div>
+//         )}
+
+//         {/* Content */}
+//         <div>
+//           <label className="block text-white/80 text-sm font-medium mb-2">
+//             Content * {!preview && <span className="text-white/40">(Markdown supported)</span>}
+//           </label>
+          
+//           {preview ? (
+//             <div 
+//               className="w-full min-h-[200px] p-3 bg-white/5 border border-white/20 rounded-lg text-white prose prose-invert max-w-none"
+//               dangerouslySetInnerHTML={{ __html: formatMarkdown(content) }}
+//             />
+//           ) : (
+//             <textarea
+//               ref={textareaRef}
+//               value={content}
+//               onChange={(e) => setContent(e.target.value)}
+//               placeholder="Write your note content here... Use markdown for formatting!"
+//               rows={12}
+//               className="w-full px-3 py-2 bg-white/10 border border-white/20 rounded-lg text-white placeholder-white/40 focus:outline-none focus:ring-2 focus:ring-blue-500 font-mono text-sm"
+//             />
+//           )}
+//         </div>
+
+//         {/* Tags */}
+//         <div>
+//           <label className="block text-white/80 text-sm font-medium mb-2">
+//             Tags
+//           </label>
+//           <div className="flex flex-wrap gap-2 mb-2">
+//             {tags.map((tag, index) => (
+//               <span
+//                 key={index}
+//                 className="inline-flex items-center px-2 py-1 bg-blue-600/20 border border-blue-500/30 rounded-full text-blue-300 text-xs"
+//               >
+//                 {tag}
+//                 <button
+//                   onClick={() => removeTag(tag)}
+//                   className="ml-1 text-blue-300 hover:text-white"
+//                 >
+//                   ×
+//                 </button>
+//               </span>
+//             ))}
+//           </div>
+//           <input
+//             type="text"
+//             value={tagInput}
+//             onChange={(e) => setTagInput(e.target.value)}
+//             onKeyDown={handleAddTag}
+//             placeholder="Add tags (press Enter to add)"
+//             className="w-full px-3 py-2 bg-white/10 border border-white/20 rounded-lg text-white placeholder-white/40 focus:outline-none focus:ring-2 focus:ring-blue-500"
+//           />
+//         </div>
+
+//         {/* Save Button (Bottom) */}
+//         <div className="flex justify-end pt-4">
+//           <button
+//             onClick={handleSave}
+//             disabled={saving || !title.trim() || !content.trim() || !subject}
+//             className="flex items-center space-x-2 px-6 py-3 bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 disabled:from-gray-500 disabled:to-gray-600 text-white rounded-lg transition-all duration-200 font-medium"
+//           >
+//             {saving ? <Loader2 className="w-5 h-5 animate-spin" /> : <Save className="w-5 h-5" />}
+//             <span>{saving ? 'Saving Note...' : 'Save Note'}</span>
+//           </button>
+//         </div>
+//       </div>
+//     </div>
+//   );
+// };
+
+// export default NoteEditor;
+
+import React, { useState, useEffect } from "react";
+import { Save, X, Star, Book, FileText, ArrowLeft } from "lucide-react";
+import AutoText from "./AutoText";
 
 const NoteEditor = ({ note, onSave, onCancel }) => {
-  const navigate = useNavigate();
-  const { slug } = useParams();
-  const editorRef = useRef(null);
-  const [title, setTitle] = useState(note?.title || '');
-  const [content, setContent] = useState(note?.content || { blocks: [], version: "2.28.2" });
-  const [subject, setSubject] = useState(note?.subject || 'General');
-  const [tags, setTags] = useState(note?.tags || []);
-  const [isPublic, setIsPublic] = useState(note?.isPublic || false);
-  const [isFavorite, setIsFavorite] = useState(note?.isFavorite || false);
-  const [saving, setSaving] = useState(false);
-  const [lastSaved, setLastSaved] = useState(note?.lastModified ? new Date(note.lastModified) : null);
-  const [showTagInput, setShowTagInput] = useState(false);
-  const [newTag, setNewTag] = useState('');
-  const [activeBlock, setActiveBlock] = useState(null);
-  const [showToolbar, setShowToolbar] = useState(false);
-  const [blocks, setBlocks] = useState([
-    { id: 1, type: 'paragraph', content: '' }
-  ]);
+	const [title, setTitle] = useState(note?.title || "");
+	const [content, setContent] = useState(note?.content || "");
+	const [subject, setSubject] = useState(note?.subject || "General");
+	const [isFavorite, setIsFavorite] = useState(note?.isFavorite || false);
+	const [saving, setSaving] = useState(false);
 
-  const subjects = ['General', 'Math', 'Science', 'English', 'Hindi', 'Social Studies', 'Computer Science', 'Art', 'Music'];
+	const subjects = [
+		"General",
+		"Math",
+		"Science",
+		"English",
+		"Hindi",
+		"Social Studies",
+		"Computer Science",
+		"Art",
+		"Music",
+	];
 
-  const blockTypes = [
-    { type: 'paragraph', icon: Type, label: 'Text', shortcut: 'P' },
-    { type: 'heading1', icon: Heading1, label: 'Heading 1', shortcut: 'H1' },
-    { type: 'heading2', icon: Heading2, label: 'Heading 2', shortcut: 'H2' },
-    { type: 'heading3', icon: Heading3, label: 'Heading 3', shortcut: 'H3' },
-    { type: 'list', icon: List, label: 'Bullet List', shortcut: 'UL' },
-    { type: 'numbered', icon: Hash, label: 'Numbered List', shortcut: 'OL' },
-    { type: 'quote', icon: Quote, label: 'Quote', shortcut: 'Q' },
-    { type: 'code', icon: Code, label: 'Code Block', shortcut: 'C' },
-    { type: 'divider', icon: Minus, label: 'Divider', shortcut: 'D' }
-  ];
+	// Helper function to convert old Editor.js content to plain text
+	const convertContentToText = (content) => {
+		if (!content) return "";
 
-  const formatButtons = [
-    { action: 'bold', icon: Bold, shortcut: 'Ctrl+B' },
-    { action: 'italic', icon: Italic, shortcut: 'Ctrl+I' },
-    { action: 'underline', icon: Underline, shortcut: 'Ctrl+U' },
-    { action: 'link', icon: Link2, shortcut: 'Ctrl+K' }
-  ];
+		// If already a string, return as is
+		if (typeof content === "string") return content;
 
-  // Auto-save functionality
-  const scheduleAutoSave = useCallback(() => {
-    const timer = setTimeout(() => {
-      handleSave(true);
-    }, 2000);
-    return () => clearTimeout(timer);
-  }, [title, content, subject, tags, isPublic, isFavorite]);
+		// If it's the old Editor.js format (object with blocks)
+		if (
+			typeof content === "object" &&
+			content.blocks &&
+			Array.isArray(content.blocks)
+		) {
+			return content.blocks
+				.map((block) => {
+					if (block.data?.text) return block.data.text;
+					if (block.data?.items && Array.isArray(block.data.items)) {
+						return block.data.items.join("\n");
+					}
+					return "";
+				})
+				.filter((text) => text.length > 0)
+				.join("\n\n");
+		}
 
-  useEffect(() => {
-    if (note) {
-      setTitle(note.title);
-      setContent(note.content);
-      setSubject(note.subject);
-      setTags(note.tags);
-      setIsPublic(note.isPublic);
-      setIsFavorite(note.isFavorite);
-    }
-  }, [note]);
+		return "";
+	};
 
-  const handleSave = async (isAutoSave = false) => {
-    if (!isAutoSave) setSaving(true);
+	useEffect(() => {
+		if (note) {
+			setTitle(note.title || "");
+			setContent(convertContentToText(note.content));
+			setSubject(note.subject || "General");
+			setIsFavorite(note.isFavorite || false);
+		}
+	}, [note]);
 
-    try {
-      const noteData = {
-        title: title || 'Untitled Note',
-        content,
-        subject,
-        tags,
-        isPublic,
-        isFavorite
-      };
+	const handleSave = async () => {
+		if (!title.trim()) {
+			alert("Please enter a title for your note.");
+			return;
+		}
 
-      const result = await onSave(noteData);
-      if (result.success) {
-        setLastSaved(new Date());
-      }
-    } catch (error) {
-      console.error('Error saving note:', error);
-    } finally {
-      if (!isAutoSave) setSaving(false);
-    }
-  };
+		setSaving(true);
+		try {
+			const updatedNote = {
+				...note,
+				title: title.trim(),
+				content: content.trim(),
+				subject,
+				isFavorite,
+			};
 
-  const addTag = () => {
-    if (newTag.trim() && !tags.includes(newTag.trim())) {
-      setTags([...tags, newTag.trim()]);
-      setNewTag('');
-      setShowTagInput(false);
-      scheduleAutoSave();
-    }
-  };
+			await onSave(updatedNote);
+		} catch (error) {
+			console.error("Error saving note:", error);
+			alert("Failed to save note. Please try again.");
+		} finally {
+			setSaving(false);
+		}
+	};
 
-  const removeTag = (tagToRemove) => {
-    setTags(tags.filter(tag => tag !== tagToRemove));
-    scheduleAutoSave();
-  };
+	const handleKeyDown = (e) => {
+		if (e.ctrlKey || e.metaKey) {
+			if (e.key === "s") {
+				e.preventDefault();
+				handleSave();
+			}
+		}
+	};
 
-  const handleKeyPress = (e) => {
-    if (e.key === 'Enter') {
-      addTag();
-    } else if (e.key === 'Escape') {
-      setShowTagInput(false);
-      setNewTag('');
-    }
-  };
+	return (
+		<div className="w-full h-full flex items-center justify-center px-5 py-4 relative">
+			{/* Background particles */}
+			<div className="absolute inset-0 overflow-hidden pointer-events-none">
+				{[...Array(15)].map((_, i) => (
+					<div
+						key={i}
+						className="absolute animate-pulse"
+						style={{
+							left: `${Math.random() * 100}%`,
+							top: `${Math.random() * 100}%`,
+							animationDelay: `${Math.random() * 3}s`,
+							animationDuration: `${2 + Math.random() * 2}s`,
+						}}>
+						<Star className="w-2 h-2 text-purple-400 opacity-40" />
+					</div>
+				))}
+			</div>
 
-  const addBlock = (type, afterId = null) => {
-    const newBlock = {
-      id: Date.now(),
-      type,
-      content: getDefaultContent(type)
-    };
+			<div className="w-full relative z-10 m-4 max-w-4xl">
+				{/* Header */}
+				<div className="backdrop-blur-xl bg-black/40 border border-purple-500/30 rounded-3xl p-6 mb-6 shadow-2xl">
+					<div className="flex flex-col lg:flex-row items-center justify-between gap-4">
+						<div className="flex items-center space-x-3">
+							<div className="bg-gradient-to-r from-purple-600 to-pink-600 p-2 rounded-lg shadow-lg">
+								<FileText className="w-6 h-6 text-white" />
+							</div>
+							<h1 className="text-2xl font-bold bg-gradient-to-r from-white to-purple-200 bg-clip-text text-transparent">
+								<AutoText>Edit Note</AutoText>
+							</h1>
+						</div>
 
-    if (afterId) {
-      const index = blocks.findIndex(b => b.id === afterId);
-      const newBlocks = [...blocks];
-      newBlocks.splice(index + 1, 0, newBlock);
-      setBlocks(newBlocks);
-    } else {
-      setBlocks([...blocks, newBlock]);
-    }
-    
-    setActiveBlock(newBlock.id);
-  };
+						<div className="flex items-center space-x-3">
+							<button
+								onClick={onCancel}
+								className="flex items-center space-x-2 bg-gray-600 hover:bg-gray-700 text-white px-4 py-2 rounded-xl transition-all duration-300">
+								<ArrowLeft className="w-4 h-4" />
+								<AutoText>Back</AutoText>
+							</button>
 
-  const getDefaultContent = (type) => {
-    switch (type) {
-      case 'heading1': return 'Heading 1';
-      case 'heading2': return 'Heading 2';
-      case 'heading3': return 'Heading 3';
-      case 'quote': return 'Quote text here...';
-      case 'code': return 'console.log("Hello, World!");';
-      case 'list': return ['List item 1', 'List item 2'];
-      case 'numbered': return ['First item', 'Second item'];
-      case 'divider': return null;
-      default: return 'Type something...';
-    }
-  };
+							<button
+								onClick={handleSave}
+								disabled={saving}
+								className="flex items-center space-x-2 bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 text-white px-6 py-2 rounded-xl transition-all duration-300 shadow-lg hover:shadow-xl transform hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed">
+								<Save className="w-4 h-4" />
+								<AutoText>{saving ? "Saving..." : "Save"}</AutoText>
+							</button>
+						</div>
+					</div>
+				</div>
 
-  const updateBlockContent = (id, newContent) => {
-    setBlocks(blocks.map(block => 
-      block.id === id ? { ...block, content: newContent } : block
-    ));
-    scheduleAutoSave();
-  };
+				{/* Editor */}
+				<div className="backdrop-blur-xl bg-black/40 border border-purple-500/30 rounded-3xl p-8 shadow-2xl">
+					<div className="space-y-6" onKeyDown={handleKeyDown}>
+						{/* Title and Meta */}
+						<div className="space-y-4">
+							<div>
+								<label className="block text-white/80 text-sm font-medium mb-2">
+									<AutoText>Title</AutoText>
+								</label>
+								<input
+									type="text"
+									value={title}
+									onChange={(e) => setTitle(e.target.value)}
+									placeholder="Enter note title..."
+									className="w-full px-4 py-3 bg-white/10 border border-purple-500/30 rounded-xl text-white placeholder:text-white/50 focus:outline-none focus:ring-2 focus:ring-purple-500/50 focus:border-purple-500/50 backdrop-blur-sm transition-all duration-300 text-lg font-medium"
+									autoFocus
+								/>
+							</div>
 
-  const deleteBlock = (id) => {
-    if (blocks.length > 1) {
-      setBlocks(blocks.filter(block => block.id !== id));
-      scheduleAutoSave();
-    }
-  };
+							<div className="flex flex-col sm:flex-row gap-4">
+								<div className="flex-1">
+									<label className="block text-white/80 text-sm font-medium mb-2">
+										<AutoText>Subject</AutoText>
+									</label>
+									<select
+										value={subject}
+										onChange={(e) => setSubject(e.target.value)}
+										className="w-full px-4 py-3 bg-white/10 border border-purple-500/30 rounded-xl text-white focus:outline-none focus:ring-2 focus:ring-purple-500/50 focus:border-purple-500/50 backdrop-blur-sm transition-all duration-300">
+										{subjects.map((sub) => (
+											<option key={sub} value={sub} className="bg-gray-800">
+												{sub}
+											</option>
+										))}
+									</select>
+								</div>
 
-  const renderBlock = (block) => {
-    const isActive = activeBlock === block.id;
-    const isEmpty = !block.content || block.content.trim() === '';
-    
-    switch (block.type) {
-      case 'heading1':
-        return (
-          <h1 
-            className={`text-4xl font-bold mb-4 outline-none px-3 py-2 rounded-lg transition-all duration-200 min-h-[3rem] ${
-              isActive 
-                ? 'bg-white/5 ring-2 ring-purple-500/50 text-white' 
-                : isEmpty 
-                  ? 'text-white/30 hover:text-white/50 hover:bg-white/5' 
-                  : 'text-white hover:bg-white/5'
-            }`}
-            contentEditable
-            suppressContentEditableWarning
-            onInput={(e) => updateBlockContent(block.id, e.target.textContent)}
-            onFocus={() => setActiveBlock(block.id)}
-            onBlur={() => setActiveBlock(null)}
-            data-placeholder="Heading 1"
-          >
-            {block.content}
-          </h1>
-        );
-      
-      case 'heading2':
-        return (
-          <h2 
-            className={`text-3xl font-semibold mb-3 outline-none px-3 py-2 rounded-lg transition-all duration-200 min-h-[2.5rem] ${
-              isActive 
-                ? 'bg-white/5 ring-2 ring-purple-500/50 text-white' 
-                : isEmpty 
-                  ? 'text-white/30 hover:text-white/50 hover:bg-white/5' 
-                  : 'text-white hover:bg-white/5'
-            }`}
-            contentEditable
-            suppressContentEditableWarning
-            onInput={(e) => updateBlockContent(block.id, e.target.textContent)}
-            onFocus={() => setActiveBlock(block.id)}
-            onBlur={() => setActiveBlock(null)}
-            data-placeholder="Heading 2"
-          >
-            {block.content}
-          </h2>
-        );
-      
-      case 'heading3':
-        return (
-          <h3 
-            className={`text-2xl font-medium mb-2 outline-none px-3 py-2 rounded-lg transition-all duration-200 min-h-[2rem] ${
-              isActive 
-                ? 'bg-white/5 ring-2 ring-purple-500/50 text-white' 
-                : isEmpty 
-                  ? 'text-white/30 hover:text-white/50 hover:bg-white/5' 
-                  : 'text-white hover:bg-white/5'
-            }`}
-            contentEditable
-            suppressContentEditableWarning
-            onInput={(e) => updateBlockContent(block.id, e.target.textContent)}
-            onFocus={() => setActiveBlock(block.id)}
-            onBlur={() => setActiveBlock(null)}
-            data-placeholder="Heading 3"
-          >
-            {block.content}
-          </h3>
-        );
-      
-      case 'quote':
-        return (
-          <blockquote 
-            className={`border-l-4 border-purple-500 italic mb-4 outline-none px-4 py-3 rounded-r-lg transition-all duration-200 min-h-[2.5rem] ${
-              isActive 
-                ? 'bg-purple-500/10 ring-2 ring-purple-500/50 text-gray-200 border-purple-400' 
-                : isEmpty 
-                  ? 'text-gray-500 hover:text-gray-400 hover:bg-purple-500/5 hover:border-purple-400' 
-                  : 'text-gray-300 hover:bg-purple-500/5 hover:border-purple-400'
-            }`}
-            contentEditable
-            suppressContentEditableWarning
-            onInput={(e) => updateBlockContent(block.id, e.target.textContent)}
-            onFocus={() => setActiveBlock(block.id)}
-            onBlur={() => setActiveBlock(null)}
-            data-placeholder="Quote text here..."
-          >
-            {block.content}
-          </blockquote>
-        );
-      
-      case 'code':
-        return (
-          <div className={`rounded-lg p-4 mb-4 transition-all duration-200 ${
-            isActive 
-              ? 'bg-gray-800 ring-2 ring-purple-500/50' 
-              : 'bg-gray-800/80 hover:bg-gray-800'
-          }`}>
-            <code 
-              className={`font-mono outline-none block whitespace-pre-wrap min-h-[1.5rem] ${
-                isEmpty 
-                  ? 'text-green-400/40' 
-                  : 'text-green-400'
-              }`}
-              contentEditable
-              suppressContentEditableWarning
-              onInput={(e) => updateBlockContent(block.id, e.target.textContent)}
-              onFocus={() => setActiveBlock(block.id)}
-              onBlur={() => setActiveBlock(null)}
-              data-placeholder="Type your code here..."
-            >
-              {block.content}
-            </code>
-          </div>
-        );
-      
-      case 'list':
-        return (
-          <ul 
-            className={`list-disc list-inside mb-4 outline-none px-3 py-2 rounded-lg transition-all duration-200 min-h-[2rem] ${
-              isActive 
-                ? 'bg-white/5 ring-2 ring-purple-500/50 text-white' 
-                : isEmpty 
-                  ? 'text-white/30 hover:text-white/50 hover:bg-white/5' 
-                  : 'text-white hover:bg-white/5'
-            }`}
-            contentEditable
-            suppressContentEditableWarning
-            onInput={(e) => updateBlockContent(block.id, e.target.textContent)}
-            onFocus={() => setActiveBlock(block.id)}
-            onBlur={() => setActiveBlock(null)}
-            data-placeholder="• List item"
-          >
-            {block.content}
-          </ul>
-        );
-      
-      case 'numbered':
-        return (
-          <ol 
-            className={`list-decimal list-inside mb-4 outline-none px-3 py-2 rounded-lg transition-all duration-200 min-h-[2rem] ${
-              isActive 
-                ? 'bg-white/5 ring-2 ring-purple-500/50 text-white' 
-                : isEmpty 
-                  ? 'text-white/30 hover:text-white/50 hover:bg-white/5' 
-                  : 'text-white hover:bg-white/5'
-            }`}
-            contentEditable
-            suppressContentEditableWarning
-            onInput={(e) => updateBlockContent(block.id, e.target.textContent)}
-            onFocus={() => setActiveBlock(block.id)}
-            onBlur={() => setActiveBlock(null)}
-            data-placeholder="1. Numbered list item"
-          >
-            {block.content}
-          </ol>
-        );
+								<div className="flex items-end">
+									<button
+										type="button"
+										onClick={() => setIsFavorite(!isFavorite)}
+										className={`flex items-center space-x-2 px-4 py-3 rounded-xl border transition-all duration-300 ${
+											isFavorite
+												? "bg-yellow-500/20 border-yellow-500/50 text-yellow-200"
+												: "bg-white/10 border-purple-500/30 text-white/70 hover:bg-white/20"
+										}`}>
+										<Star
+											className={`w-5 h-5 ${isFavorite ? "fill-current" : ""}`}
+										/>
+										<AutoText>Favorite</AutoText>
+									</button>
+								</div>
+							</div>
+						</div>
 
-      case 'divider':
-        return (
-          <div className="flex items-center justify-center my-6">
-            <hr className={`border-purple-500/50 w-full transition-all duration-200 ${
-              isActive ? 'border-purple-400' : 'hover:border-purple-400/70'
-            }`} 
-            onClick={() => setActiveBlock(block.id)} />
-          </div>
-        );
-      
-      default:
-        return (
-          <div 
-            className={`mb-4 outline-none px-3 py-2 rounded-lg transition-all duration-200 min-h-[2rem] leading-relaxed ${
-              isActive 
-                ? 'bg-white/5 ring-2 ring-purple-500/50 text-white' 
-                : isEmpty 
-                  ? 'text-white/30 hover:text-white/50 hover:bg-white/5' 
-                  : 'text-white hover:bg-white/5'
-            }`}
-            contentEditable
-            suppressContentEditableWarning
-            onInput={(e) => updateBlockContent(block.id, e.target.textContent)}
-            onFocus={() => setActiveBlock(block.id)}
-            onBlur={() => setActiveBlock(null)}
-            data-placeholder="Start writing..."
-          >
-            {block.content}
-          </div>
-        );
-    }
-  };
+						{/* Content */}
+						<div>
+							<label className="block text-white/80 text-sm font-medium mb-2">
+								<AutoText>Content</AutoText>
+							</label>
+							<textarea
+								value={content}
+								onChange={(e) => setContent(e.target.value)}
+								placeholder="Start writing your note..."
+								rows={20}
+								className="w-full px-4 py-4 bg-white/10 border border-purple-500/30 rounded-xl text-white placeholder:text-white/50 focus:outline-none focus:ring-2 focus:ring-purple-500/50 focus:border-purple-500/50 backdrop-blur-sm transition-all duration-300 resize-none font-mono text-sm leading-relaxed"
+							/>
+						</div>
 
-  return (
-    <div className="w-full h-full flex items-center justify-center p-4 relative">
-      {/* Custom styles for contentEditable placeholders */}
-      <style>{`
-        [contenteditable]:empty:before {
-          content: attr(data-placeholder);
-          color: rgba(255, 255, 255, 0.3);
-          pointer-events: none;
-          position: absolute;
-        }
-        [contenteditable]:focus:empty:before {
-          color: rgba(255, 255, 255, 0.4);
-        }
-        [contenteditable] {
-          position: relative;
-        }
-        /* Add smooth transitions for all interactive elements */
-        [contenteditable]:hover {
-          transform: translateY(-1px);
-        }
-        [contenteditable]:focus {
-          transform: translateY(-1px);
-          box-shadow: 0 4px 20px rgba(147, 51, 234, 0.1);
-        }
-      `}</style>
-      
-      {/* Animated particles */}
-      <div className="absolute inset-0 overflow-hidden pointer-events-none">
-        {[...Array(30)].map((_, i) => (
-          <div
-            key={i}
-            className={`absolute animate-pulse`}
-            style={{
-              left: `${Math.random() * 100}%`,
-              top: `${Math.random() * 100}%`,
-              animationDelay: `${Math.random() * 3}s`,
-              animationDuration: `${2 + Math.random() * 3}s`
-            }}
-          >
-            <div className={`w-2 h-2 rounded-full ${
-              i % 4 === 0 ? 'bg-purple-400' : 
-              i % 4 === 1 ? 'bg-pink-400' : 
-              i % 4 === 2 ? 'bg-blue-400' : 'bg-green-400'
-            } opacity-60`}></div>
-          </div>
-        ))}
-      </div>
-
-      {/* Floating decorative elements */}
-      <div className="absolute top-20 left-10 w-32 h-32 bg-gradient-to-r from-purple-600/20 to-pink-600/20 rounded-full blur-xl animate-bounce"></div>
-      <div className="absolute bottom-20 right-10 w-24 h-24 bg-gradient-to-r from-blue-600/20 to-purple-600/20 rounded-full blur-xl animate-pulse"></div>
-      <div className="absolute top-1/3 right-20 w-16 h-16 bg-gradient-to-r from-pink-600/20 to-red-600/20 rounded-full blur-lg animate-ping"></div>
-
-      {/* Main container */}
-      <div className="backdrop-blur-xl bg-black/40 border border-purple-500/30 rounded-3xl shadow-2xl relative overflow-hidden w-full max-w-7xl h-full max-h-[90vh] flex flex-col">
-        
-        {/* Header */}
-        <div className="flex items-center justify-between p-6 bg-white/10 backdrop-blur-sm border-b border-purple-500/30">
-          {/* Left side - Title and status */}
-          <div className="flex items-center space-x-4">
-            <div className="group relative">
-              <div className="bg-gradient-to-r from-purple-600 to-pink-600 p-4 rounded-2xl shadow-lg transform hover:scale-110 transition-transform duration-300">
-                <Edit3 className="w-8 h-8 text-white" />
-              </div>
-              <div className="absolute -top-2 -right-2 flex space-x-1">
-                {isFavorite && (
-                  <div className="bg-yellow-500 rounded-full p-1">
-                    <Star className="w-3 h-3 text-white fill-current" />
-                  </div>
-                )}
-                {isPublic && (
-                  <div className="bg-green-500 rounded-full p-1">
-                    <Eye className="w-3 h-3 text-white" />
-                  </div>
-                )}
-              </div>
-            </div>
-
-            <div>
-              <input
-                type="text"
-                value={title}
-                onChange={(e) => {
-                  setTitle(e.target.value);
-                  scheduleAutoSave();
-                }}
-                placeholder="Untitled Note"
-                className="text-2xl font-bold bg-transparent text-white placeholder-white/30 outline-none border-b-2 border-transparent focus:border-purple-500 hover:border-purple-500/30 transition-all duration-300 min-w-[300px] px-2 py-1 rounded-t-lg focus:bg-white/5"
-              />
-              <div className="flex items-center space-x-2 mt-1">
-                <div className="flex items-center space-x-1">
-                  <div className="w-2 h-2 bg-green-400 rounded-full animate-pulse"></div>
-                  <AutoText className="text-sm text-green-300">Live editing</AutoText>
-                </div>
-                {lastSaved && (
-                  <div className="flex items-center space-x-1">
-                    <div className="w-2 h-2 bg-green-400 rounded-full"></div>
-                    <AutoText className="text-sm text-gray-400">
-                      Last saved: {lastSaved.toLocaleTimeString()}
-                    </AutoText>
-                  </div>
-                )}
-              </div>
-            </div>
-          </div>
-
-          {/* Right side - Action buttons */}
-          <div className="flex items-center space-x-4">
-            <button
-              onClick={() => {
-                setIsFavorite(!isFavorite);
-                scheduleAutoSave();
-              }}
-              className={`group relative p-3 rounded-xl transition-all duration-300 transform hover:scale-110 ${
-                isFavorite
-                  ? 'bg-gradient-to-r from-yellow-500/30 to-orange-500/30 border-yellow-400/50 text-yellow-200 shadow-lg shadow-yellow-500/25'
-                  : 'bg-white/10 hover:bg-gradient-to-r hover:from-yellow-500/20 hover:to-orange-500/20 border-white/20 hover:border-yellow-400/50 text-white hover:text-yellow-200'
-              } border backdrop-blur-sm`}
-            >
-              <Star className={`w-5 h-5 transition-all duration-500 ${isFavorite ? 'fill-current rotate-12 scale-125' : 'group-hover:rotate-12 group-hover:scale-110'}`} />
-            </button>
-
-            <button
-              onClick={handleSave}
-              disabled={saving}
-              className="flex items-center space-x-2 bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-700 hover:to-emerald-700 disabled:from-green-600/50 disabled:to-emerald-600/50 text-white px-6 py-3 rounded-xl transition-all duration-300 font-medium shadow-lg transform hover:scale-105 disabled:hover:scale-100"
-            >
-              <Save className="w-5 h-5" />
-              <AutoText>{saving ? 'Saving...' : 'Save'}</AutoText>
-            </button>
-
-            <button
-              onClick={onCancel}
-              className="flex items-center space-x-2 bg-gradient-to-r from-gray-600 to-gray-700 hover:from-gray-700 hover:to-gray-800 text-white px-6 py-3 rounded-xl transition-all duration-300 font-medium shadow-lg transform hover:scale-105"
-            >
-              <X className="w-5 h-5" />
-              <AutoText>Close</AutoText>
-            </button>
-          </div>
-        </div>
-
-        {/* Main content area */}
-        <div className="flex flex-1 overflow-hidden">
-          {/* Editor area */}
-          <div className="flex-1 flex flex-col">
-            {/* Toolbar */}
-            <div className="flex items-center justify-between p-4 bg-white/5 border-b border-purple-500/20">
-              {/* Block type buttons */}
-              <div className="flex items-center space-x-2">
-                <AutoText className="text-sm text-white/70 mr-2">Add:</AutoText>
-                {blockTypes.slice(0, 6).map((blockType) => {
-                  const Icon = blockType.icon;
-                  return (
-                    <button
-                      key={blockType.type}
-                      onClick={() => addBlock(blockType.type)}
-                      className="flex items-center space-x-1 px-3 py-2 bg-white/10 hover:bg-purple-600/30 border border-white/20 hover:border-purple-500/50 rounded-lg transition-all duration-200 text-white hover:text-purple-200"
-                      title={`${blockType.label} (${blockType.shortcut})`}
-                    >
-                      <Icon className="w-4 h-4" />
-                      <AutoText className="text-sm">{blockType.shortcut}</AutoText>
-                    </button>
-                  );
-                })}
-                
-                <div className="w-px h-6 bg-white/20 mx-2"></div>
-                
-                {/* Format buttons */}
-                {formatButtons.map((format) => {
-                  const Icon = format.icon;
-                  return (
-                    <button
-                      key={format.action}
-                      className="p-2 bg-white/10 hover:bg-purple-600/30 border border-white/20 hover:border-purple-500/50 rounded-lg transition-all duration-200 text-white hover:text-purple-200"
-                      title={format.shortcut}
-                    >
-                      <Icon className="w-4 h-4" />
-                    </button>
-                  );
-                })}
-              </div>
-
-              {/* View options */}
-              <div className="flex items-center space-x-2">
-                <button className="flex items-center space-x-2 px-3 py-2 bg-white/10 hover:bg-purple-600/30 border border-white/20 hover:border-purple-500/50 rounded-lg transition-all duration-200 text-white hover:text-purple-200">
-                  <Settings className="w-4 h-4" />
-                  <AutoText className="text-sm">Settings</AutoText>
-                </button>
-              </div>
-            </div>
-
-            {/* Content editor */}
-            <div className="flex-1 p-6 overflow-auto">
-              <div className="max-w-4xl mx-auto">
-                {blocks.map((block, index) => (
-                  <div 
-                    key={block.id}
-                    className={`group relative mb-2 transition-all duration-200 ${
-                      activeBlock === block.id 
-                        ? 'bg-white/5 rounded-lg ring-2 ring-purple-500/30' 
-                        : 'hover:bg-white/5 hover:rounded-lg'
-                    }`}
-                  >
-                    {/* Block separator - shows between blocks on hover */}
-                    {index > 0 && (
-                      <div className="absolute -top-1 left-0 right-0 h-2 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-200 z-20">
-                        <button
-                          onClick={() => {
-                            const prevBlock = blocks[index - 1];
-                            addBlock('paragraph', prevBlock.id);
-                          }}
-                          className="w-8 h-4 bg-purple-600/20 hover:bg-purple-600/40 border border-purple-500/30 hover:border-purple-400/50 rounded-full flex items-center justify-center text-purple-300 hover:text-purple-200 transition-all duration-200 backdrop-blur-sm"
-                          title="Add block here"
-                        >
-                          <Plus className="w-3 h-3" />
-                        </button>
-                      </div>
-                    )}
-
-                    {/* Block content with integrated controls */}
-                    <div className="relative p-2">
-                      {/* Block controls - positioned inside the block */}
-                      <div className={`absolute top-2 right-2 z-10 flex items-center space-x-1 transition-opacity duration-200 ${
-                        activeBlock === block.id ? 'opacity-100' : 'opacity-0 group-hover:opacity-100'
-                      }`}>
-                        <button
-                          onClick={() => addBlock('paragraph', block.id)}
-                          className="w-7 h-7 bg-black/60 hover:bg-purple-600/80 border border-white/20 hover:border-purple-400/50 rounded-lg flex items-center justify-center text-white hover:text-purple-200 transition-all duration-200 backdrop-blur-sm"
-                          title="Add block below"
-                        >
-                          <Plus className="w-3.5 h-3.5" />
-                        </button>
-                        {blocks.length > 1 && (
-                          <button
-                            onClick={() => deleteBlock(block.id)}
-                            className="w-7 h-7 bg-black/60 hover:bg-red-600/80 border border-white/20 hover:border-red-400/50 rounded-lg flex items-center justify-center text-white hover:text-red-200 transition-all duration-200 backdrop-blur-sm"
-                            title="Delete block"
-                          >
-                            <X className="w-3.5 h-3.5" />
-                          </button>
-                        )}
-                      </div>
-
-                      {/* Block content */}
-                      <div className="pr-16">
-                        {renderBlock(block)}
-                      </div>
-                    </div>
-                  </div>
-                ))}
-
-                {/* Add new block button */}
-                <button
-                  onClick={() => addBlock('paragraph')}
-                  className="flex items-center space-x-2 px-4 py-3 bg-white/5 hover:bg-purple-600/20 border border-dashed border-white/30 hover:border-purple-500/50 rounded-xl transition-all duration-300 text-white/70 hover:text-purple-200 w-full"
-                >
-                  <Plus className="w-5 h-5" />
-                  <AutoText>Add a block</AutoText>
-                </button>
-              </div>
-            </div>
-          </div>
-
-          {/* Sidebar */}
-          <div className="w-80 bg-white/5 backdrop-blur-sm border-l border-purple-500/30 p-6 overflow-auto">
-            <div className="space-y-6">
-              {/* Subject */}
-              <div className="bg-white/10 backdrop-blur-sm border border-white/20 rounded-xl p-4">
-                <label className="flex items-center space-x-2 text-white font-medium mb-3">
-                  <Book className="w-4 h-4" />
-                  <AutoText>Subject</AutoText>
-                </label>
-                <select
-                  value={subject}
-                  onChange={(e) => {
-                    setSubject(e.target.value);
-                    scheduleAutoSave();
-                  }}
-                  className="w-full bg-white/10 hover:bg-white/15 border border-white/20 hover:border-white/30 focus:border-purple-500 rounded-lg px-4 py-3 text-white focus:outline-none focus:ring-2 focus:ring-purple-500/30 focus:bg-white/15 appearance-none cursor-pointer transition-all duration-200 shadow-lg"
-                >
-                  {subjects.map(sub => (
-                    <option key={sub} value={sub} className="bg-gray-800 text-white">
-                      {sub}
-                    </option>
-                  ))}
-                </select>
-              </div>
-
-              {/* Tags */}
-              <div className="bg-white/10 backdrop-blur-sm border border-white/20 rounded-xl p-4">
-                <div className="flex items-center justify-between mb-3">
-                  <label className="flex items-center space-x-2 text-white font-medium">
-                    <Tag className="w-4 h-4" />
-                    <AutoText>Tags</AutoText>
-                  </label>
-                  <button
-                    onClick={() => setShowTagInput(!showTagInput)}
-                    className="text-purple-400 hover:text-purple-300 p-1 rounded-lg hover:bg-purple-600/20 transition-all duration-200"
-                  >
-                    <Plus className="w-4 h-4" />
-                  </button>
-                </div>
-
-                {showTagInput && (
-                  <div className="mb-3">
-                    <input
-                      type="text"
-                      value={newTag}
-                      onChange={(e) => setNewTag(e.target.value)}
-                      onKeyPress={handleKeyPress}
-                      placeholder="Add a tag..."
-                      className="w-full bg-white/10 hover:bg-white/15 border border-white/20 hover:border-white/30 focus:border-purple-500 rounded-lg px-4 py-3 text-white placeholder-white/30 focus:placeholder-white/50 focus:outline-none focus:ring-2 focus:ring-purple-500/30 focus:bg-white/15 text-sm transition-all duration-200 shadow-lg"
-                      autoFocus
-                    />
-                  </div>
-                )}
-
-                <div className="flex flex-wrap gap-2">
-                  {tags.map((tag, index) => (
-                    <span
-                      key={index}
-                      className="flex items-center space-x-1 px-3 py-1 bg-gradient-to-r from-purple-600/30 to-pink-600/30 border border-purple-500/30 text-purple-200 text-sm rounded-full backdrop-blur-sm"
-                    >
-                      <AutoText>{tag}</AutoText>
-                      <button
-                        onClick={() => removeTag(tag)}
-                        className="text-purple-300 hover:text-white transition-colors duration-200"
-                      >
-                        <X className="w-3 h-3" />
-                      </button>
-                    </span>
-                  ))}
-                </div>
-              </div>
-
-              {/* Visibility */}
-              <div className="bg-white/10 backdrop-blur-sm border border-white/20 rounded-xl p-4">
-                <label className="flex items-center space-x-2 text-white font-medium mb-3">
-                  {isPublic ? <Eye className="w-4 h-4" /> : <Lock className="w-4 h-4" />}
-                  <AutoText>Visibility</AutoText>
-                </label>
-                <label className="flex items-center space-x-3 text-white cursor-pointer">
-                  <div className="relative">
-                    <input
-                      type="checkbox"
-                      checked={isPublic}
-                      onChange={(e) => {
-                        setIsPublic(e.target.checked);
-                        scheduleAutoSave();
-                      }}
-                      className="sr-only"
-                    />
-                    <div className={`w-12 h-6 rounded-full border-2 transition-all duration-300 ${
-                      isPublic 
-                        ? 'bg-gradient-to-r from-green-500 to-emerald-500 border-green-400' 
-                        : 'bg-gray-600 border-gray-500'
-                    }`}>
-                      <div className={`w-4 h-4 bg-white rounded-full transition-transform duration-300 ${
-                        isPublic ? 'translate-x-6' : 'translate-x-1'
-                      } mt-0.5`}></div>
-                    </div>
-                  </div>
-                  <AutoText>Make this note public</AutoText>
-                </label>
-              </div>
-
-              {/* Stats */}
-              <div className="bg-white/10 backdrop-blur-sm border border-white/20 rounded-xl p-4">
-                <div className="text-white font-medium mb-3 flex items-center space-x-2">
-                  <Trophy className="w-4 h-4" />
-                  <AutoText>Note Stats</AutoText>
-                </div>
-                <div className="space-y-2 text-sm">
-                  <div className="flex justify-between text-gray-300">
-                    <AutoText>Blocks:</AutoText>
-                    <span className="text-purple-300">{blocks.length}</span>
-                  </div>
-                  <div className="flex justify-between text-gray-300">
-                    <AutoText>Words:</AutoText>
-                    <span className="text-purple-300">
-                      {blocks.reduce((count, block) => {
-                        const text = typeof block.content === 'string' ? block.content : '';
-                        return count + text.split(/\s+/).filter(word => word.length > 0).length;
-                      }, 0)}
-                    </span>
-                  </div>
-                  <div className="flex justify-between text-gray-300">
-                    <AutoText>Characters:</AutoText>
-                    <span className="text-purple-300">
-                      {blocks.reduce((count, block) => {
-                        const text = typeof block.content === 'string' ? block.content : '';
-                        return count + text.length;
-                      }, 0)}
-                    </span>
-                  </div>
-                </div>
-              </div>
-
-              {/* Actions */}
-              <div className="space-y-3">
-                <button className="w-full bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 text-white px-4 py-3 rounded-xl transition-all duration-300 font-medium shadow-lg transform hover:scale-105 flex items-center justify-center space-x-2">
-                  <Share2 className="w-4 h-4" />
-                  <AutoText>Share Note</AutoText>
-                </button>
-                
-                <button className="w-full bg-gradient-to-r from-blue-600 to-cyan-600 hover:from-blue-700 hover:to-cyan-700 text-white px-4 py-3 rounded-xl transition-all duration-300 font-medium shadow-lg transform hover:scale-105 flex items-center justify-center space-x-2">
-                  <Download className="w-4 h-4" />
-                  <AutoText>Export</AutoText>
-                </button>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-    </div>
-  );
+						{/* Save Shortcut Info */}
+						<div className="text-center text-white/50 text-sm">
+							<AutoText>Press Ctrl+S (Cmd+S on Mac) to save quickly</AutoText>
+						</div>
+					</div>
+				</div>
+			</div>
+		</div>
+	);
 };
 
 export default NoteEditor;

@@ -15,7 +15,7 @@ const Simulations = () => {
 	const [categoriesBySubject, setCategoriesBySubject] = useState({});
 	const [searchQuery, setSearchQuery] = useState("");
 	const [showFilters, setShowFilters] = useState(false);
-
+const beurl=import.meta.env.VITE_BACKEND_URL;
 	const subjects = [
 		{ name: "Physics", icon: Atom, color: "from-blue-600 to-indigo-600" },
 		{ name: "Chemistry", icon: Beaker, color: "from-green-600 to-emerald-600" },
@@ -51,7 +51,7 @@ const Simulations = () => {
 		try {
 			const token =
 				localStorage.getItem("token") || sessionStorage.getItem("token");
-			const response = await fetch("http://localhost:3000/api/simulations", {
+			const response = await fetch(`${beurl}/api/simulations`, {
 				headers: {
 					Authorization: `Bearer ${token}`,
 					"Content-Type": "application/json",
