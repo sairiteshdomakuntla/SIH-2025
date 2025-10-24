@@ -1,7 +1,11 @@
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '../context/AuthContext';
-import { Brain, Sparkles, Trophy, BookOpen, Zap, Target, Clock, CheckCircle, XCircle } from 'lucide-react';
+import { useSearchParams } from 'react-router-dom';
+import { Brain, Sparkles, Trophy, BookOpen, Zap, Target, Clock, CheckCircle, XCircle, Users, Plus } from 'lucide-react';
 import BadgeNotification from './BadgeNotification';
+import CreateQuizRoomModal from './CreateQuizRoomModal';
+import JoinQuizRoomModal from './JoinQuizRoomModal';
+import MultiplayerQuizRoom from './MultiplayerQuizRoom';
 
 const QuizGenerator = () => {
   const [quiz, setQuiz] = useState(null);
@@ -22,6 +26,12 @@ const QuizGenerator = () => {
   const [quizStarted, setQuizStarted] = useState(false);
   const [finalResults, setFinalResults] = useState(null);
   const [newBadges, setNewBadges] = useState([]);
+
+  // New multiplayer state
+  const [showCreateRoomModal, setShowCreateRoomModal] = useState(false);
+  const [showJoinRoomModal, setShowJoinRoomModal] = useState(false);
+  const [currentRoom, setCurrentRoom] = useState(null);
+  const [searchParams] = useSearchParams();
 
   const { user } = useAuth();
   const API_URL = import.meta.env.VITE_BACKEND_URL;
@@ -57,6 +67,15 @@ const QuizGenerator = () => {
     }
     return () => clearInterval(timer);
   }, [quizStarted, timeLeft, showResult]);
+
+  useEffect(() => {
+    // Check for room join parameter in URL
+    const joinRoomId = searchParams.get('join');
+    if (joinRoomId && !currentRoom) {
+      setShowJoinRoomModal(true);
+      // You can pre-fill the room ID here if needed
+    }
+  }, [searchParams]);
 
   const formatTime = (seconds) => {
     const minutes = Math.floor(seconds / 60);
@@ -254,6 +273,32 @@ const QuizGenerator = () => {
     return match ? `Class ${match[1]}` : user.grade;
   };
 
+  const handleRoomCreated = (room) => {
+    setCurrentRoom(room);
+    setShowCreateRoomModal(false);
+  };
+
+  const handleRoomJoined = (room) => {
+    setCurrentRoom(room);
+    setShowJoinRoomModal(false);
+  };
+
+  const handleLeaveRoom = () => {
+    setCurrentRoom(null);
+    // Reset any quiz state if needed
+    resetQuiz();
+  };
+
+  // If in a multiplayer room, show the multiplayer component
+  if (currentRoom) {
+    return (
+      <MultiplayerQuizRoom
+        room={currentRoom}
+        onLeave={handleLeaveRoom}
+      />
+    );
+  }
+
   return (
     <div className="max-w-4xl mx-auto p-6">
       {/* Badge Notifications */}
@@ -278,6 +323,78 @@ const QuizGenerator = () => {
           10 questions • 10 minutes • Personalized AI quizzes
         </p>
       </div>
+
+      {/* Multiplayer Options */}
+      {!quiz && !showQuizForm && (
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
+          {/* Single Player Quiz */}
+          <div className="bg-white/10 backdrop-blur-sm border border-white/20 rounded-xl p-6">
+            <h2 className="text-xl font-bold text-white mb-4">Single Player</h2>
+            <p className="text-gray-300 mb-6">Practice with AI-generated personalized quizzes</p>
+            <button
+              onClick={() => setShowQuizForm(true)}
+              className="w-full bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white font-bold py-3 px-6 rounded-xl transition-all duration-300 flex items-center justify-center space-x-2"
+            >
+              <BookOpen className="w-5 h-5" />
+              <span>Start Solo Quiz</span>
+            </button>
+          </div>
+
+          {/* Multiplayer Quiz */}
+          <div className="bg-white/10 backdrop-blur-sm border border-white/20 rounded-xl p-6">
+            <h2 className="text-xl font-bold text-white mb-4">Multiplayer</h2>
+            <p className="text-gray-300 mb-6">Compete with friends in real-time quiz battles</p>
+            <div className="space-y-3">
+              <button
+                onClick={() => setShowCreateRoomModal(true)}
+                className="w-full bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-700 hover:to-emerald-700 text-white font-bold py-3 px-6 rounded-xl transition-all duration-300 flex items-center justify-center space-x-2"
+              >
+                <Plus className="w-5 h-5" />
+                <span>Create Room</span>
+              </button>
+              <button
+                onClick={() => setShowJoinRoomModal(true)}
+                className="w-full bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 text-white font-bold py-3 px-6 rounded-xl transition-all duration-300 flex items-center justify-center space-x-2"
+              >
+                <Users className="w-5 h-5" />
+                <span>Join Room</span>
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* User Profile Display */}
+      {user && !quiz && !showQuizForm && (
+        <div className="bg-white/10 backdrop-blur-sm border border-white/20 rounded-xl p-6 mb-8">
+          <h2 className="text-white font-semibold mb-4">Your Profile</h2>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <div className="text-center">
+              <p className="text-gray-400 text-sm">Level</p>
+              <p className="text-white font-bold text-lg">{user?.level || 1}</p>
+            </div>
+            <div className="text-center">
+              <p className="text-gray-400 text-sm">Class</p>
+              <p className="text-white font-bold text-lg">{getUserClassLevel()}</p>
+            </div>
+            <div className="text-center">
+              <p className="text-gray-400 text-sm">XP</p>
+              <p className="text-white font-bold text-lg">{user?.xp || 0}</p>
+            </div>
+          </div>
+          <div className="flex flex-wrap gap-2 mt-4">
+            <span className="bg-blue-500/20 px-3 py-1 rounded-full text-sm text-blue-200">
+              Grade: {user?.grade || 'Not set'}
+            </span>
+            <span className="bg-green-500/20 px-3 py-1 rounded-full text-sm text-green-200">
+              Location: {user?.location || 'Not set'}
+            </span>
+            <span className="bg-yellow-500/20 px-3 py-1 rounded-full text-sm text-yellow-200">
+              Interests: {user?.interests?.join(', ') || 'Math'}
+            </span>
+          </div>
+        </div>
+      )}
 
       {/* Quiz Preference Form */}
       {!quiz && !showQuizForm && (
@@ -691,8 +808,21 @@ const QuizGenerator = () => {
           </div>
         </div>
       )}
-      </div>
-    // </div>
+
+      {/* Modals */}
+      <CreateQuizRoomModal
+        isOpen={showCreateRoomModal}
+        onClose={() => setShowCreateRoomModal(false)}
+        onRoomCreated={handleRoomCreated}
+      />
+
+      <JoinQuizRoomModal
+        isOpen={showJoinRoomModal}
+        onClose={() => setShowJoinRoomModal(false)}
+        onRoomJoined={handleRoomJoined}
+        initialRoomId={searchParams.get('join') || ''}
+      />
+    </div>
   );
 };
 

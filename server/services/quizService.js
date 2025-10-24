@@ -510,6 +510,45 @@ Format:
       return fallbackQuestions;
     }
   }
+
+  /**
+   * NEW METHOD FOR SOCKETS: Generate a quiz and wrap it for the socket handler.
+   * This ensures a consistent { success, questions, message } response.
+   * @param {string} userId - The ID of the user (host) to generate the quiz for.
+   * @returns {Promise<Object>} An object with success status, questions array, and a message.
+   */
+  async generateQuizForSocket(userId) {
+    try {
+      const User = require("../models/User"); // Local require to avoid circular deps
+      const user = await User.findById(userId);
+      if (!user) {
+        return { success: false, message: "Host user not found." };
+      }
+
+      const preferences = this.extractUserPreferences(user);
+      console.log(`Generating quiz for user ${user.name} with preferences:`, preferences);
+
+      const questions = await this.generateMultipleQuestions(preferences, 10);
+
+      if (!questions || questions.length === 0) {
+        return { success: false, message: "The AI failed to generate questions." };
+      }
+
+      // Check if the questions are fallbacks
+      const subject = questions[0]?.isFallback ? "General Knowledge (Fallback)" : preferences.subject;
+
+      return {
+        success: true,
+        questions,
+        subject,
+        message: "Quiz generated successfully."
+      };
+
+    } catch (error) {
+      console.error("Error in generateQuizForSocket:", error);
+      return { success: false, message: "A server error occurred during quiz generation." };
+    }
+  }
 }
 
 module.exports = new QuizService();

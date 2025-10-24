@@ -22,7 +22,7 @@ const DailyQuestion = () => {
   const fetchDailyQuestion = async () => {
     try {
       const token = localStorage.getItem('token');
-      const response = await fetch(`${API_URL}/api/daily/today`, {
+      const response = await fetch(`${API_URL}/api/daily-question/today`, {
         headers: {
           'Authorization': `Bearer ${token}`
         }
@@ -53,7 +53,7 @@ const DailyQuestion = () => {
   const fetchStreakStats = async () => {
     try {
       const token = localStorage.getItem('token');
-      const response = await fetch(`${API_URL}/api/daily/streak`, {
+      const response = await fetch(`${API_URL}/api/daily-question/streak`, {
         headers: {
           'Authorization': `Bearer ${token}`
         }
@@ -74,7 +74,7 @@ const DailyQuestion = () => {
     setSubmitting(true);
     try {
       const token = localStorage.getItem('token');
-      const response = await fetch(`${API_URL}/api/daily/submit`, {
+      const response = await fetch(`${API_URL}/api/daily-question/submit`, {
         method: 'POST',
         headers: {
           'Authorization': `Bearer ${token}`,
