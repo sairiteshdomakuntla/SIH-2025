@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { Link, useNavigate, Navigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { 
   Eye, EyeOff, Mail, Lock, User, MapPin, BookOpen, 
@@ -21,8 +21,13 @@ const Register = () => {
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
 
-  const { register, error, setError } = useAuth();
+  const { user, register, error, setError } = useAuth();
   const navigate = useNavigate();
+
+  // Redirect if already logged in
+  if (user) {
+    return <Navigate to="/dashboard" replace />;
+  }
 
   const grades = [
     { key: '5th', label: '5th Grade' },
@@ -307,7 +312,7 @@ const Register = () => {
                 <option value="">Select your grade</option>
                 {grades.map(grade => (
                   <option key={grade.key} value={grade.key} className="bg-gray-800">
-                    <AutoText>{grade.label}</AutoText>
+                    {grade.label}
                   </option>
                 ))}
               </select>

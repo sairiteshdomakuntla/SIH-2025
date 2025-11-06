@@ -16,6 +16,25 @@ const XPDisplay = ({ userId, showDetails = true }) => {
     try {
       setLoading(true);
       const token = localStorage.getItem('token');
+      if (!token) {
+        // Set default values if not authenticated
+        setXpInfo({
+          currentXP: 0,
+          level: 1,
+          progress: 0,
+          xpToNext: 100,
+          minXP: 0,
+          maxXP: 100,
+          unlock: 'Starter badge',
+          nextUnlock: 'Profile customization',
+          currentStreak: 0,
+          badges: [],
+          user: { name: 'User', avatar: '' }
+        });
+        setLoading(false);
+        return;
+      }
+      
       const endpoint = userId ? `/api/xp/user/${userId}` : '/api/xp/user';
       
       const response = await fetch(`${API_URL}${endpoint}`, {
@@ -25,15 +44,45 @@ const XPDisplay = ({ userId, showDetails = true }) => {
         }
       });
 
-      if (!response.ok) {
-        throw new Error('Failed to fetch XP information');
+      const result = await response.json();
+      
+      // Handle both success and error responses
+      if (result.success && result.data) {
+        setXpInfo(result.data);
+      } else {
+        // Set default values
+        setXpInfo({
+          currentXP: 0,
+          level: 1,
+          progress: 0,
+          xpToNext: 100,
+          minXP: 0,
+          maxXP: 100,
+          unlock: 'Starter badge',
+          nextUnlock: 'Profile customization',
+          currentStreak: 0,
+          badges: [],
+          user: { name: 'User', avatar: '' }
+        });
       }
-
-      const data = await response.json();
-      setXpInfo(data.data);
-    } catch (err) {
-      setError(err.message);
-      console.error('Error fetching XP info:', err);
+      setError(null);
+    } catch (error) {
+      console.error('Error fetching XP info:', error);
+      // Set default values instead of showing error
+      setXpInfo({
+        currentXP: 0,
+        level: 1,
+        progress: 0,
+        xpToNext: 100,
+        minXP: 0,
+        maxXP: 100,
+        unlock: 'Starter badge',
+        nextUnlock: 'Profile customization',
+        currentStreak: 0,
+        badges: [],
+        user: { name: 'User', avatar: '' }
+      });
+      setError(null);
     } finally {
       setLoading(false);
     }

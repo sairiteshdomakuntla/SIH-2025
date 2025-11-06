@@ -1,5 +1,5 @@
-import React, { useState } from 'react';
-import { Link, useNavigate, useLocation } from 'react-router-dom';
+import React, { useState, useEffect } from 'react';
+import { Link, useNavigate, useLocation, Navigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { Eye, EyeOff, Mail, Lock, Gamepad2, Sparkles, Shield, Zap, Trophy, Star } from 'lucide-react';
 import AutoText from './AutoText';
@@ -13,11 +13,16 @@ const Login = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [activeField, setActiveField] = useState('');
 
-  const { login, error, setError } = useAuth();
+  const { user, login, error, setError } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
 
   const from = location.state?.from?.pathname || '/dashboard';
+
+  // Redirect if already logged in
+  if (user) {
+    return <Navigate to="/dashboard" replace />;
+  }
 
   const handleChange = (e) => {
     setFormData({

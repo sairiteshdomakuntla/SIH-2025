@@ -281,7 +281,26 @@ class XPService {
     try {
       const user = await User.findById(userId);
       if (!user) {
-        throw new Error('User not found');
+        // Return default values instead of throwing error
+        return {
+          user: {
+            id: userId,
+            name: 'User',
+            avatar: ''
+          },
+          level: 1,
+          currentXP: 0,
+          minXP: 0,
+          maxXP: 100,
+          xpToNext: 100,
+          unlock: 'Starter badge',
+          nextUnlock: 'Profile customization',
+          progress: 0,
+          badges: [],
+          achievements: 0,
+          currentStreak: 0,
+          longestStreak: 0
+        };
       }
 
       const levelInfo = this.calculateLevel(user.points || 0);
@@ -300,7 +319,26 @@ class XPService {
       };
     } catch (error) {
       console.error('Error getting user XP info:', error);
-      throw error;
+      // Return default values instead of throwing
+      return {
+        user: {
+          id: userId,
+          name: 'User',
+          avatar: ''
+        },
+        level: 1,
+        currentXP: 0,
+        minXP: 0,
+        maxXP: 100,
+        xpToNext: 100,
+        unlock: 'Starter badge',
+        nextUnlock: 'Profile customization',
+        progress: 0,
+        badges: [],
+        achievements: 0,
+        currentStreak: 0,
+        longestStreak: 0
+      };
     }
   }
 
@@ -394,5 +432,14 @@ class XPService {
     return this.levelThresholds;
   }
 }
+
+const calculateXPForLevel = (level) => {
+  try {
+    const validLevel = Math.max(1, parseInt(level) || 1);
+    return Math.floor(100 * Math.pow(1.5, validLevel - 1));
+  } catch (error) {
+    return 100;
+  }
+};
 
 module.exports = new XPService();

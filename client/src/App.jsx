@@ -48,8 +48,6 @@ function App() {
     };
   }, []);
 
-  console.log("isAuthenticated:", isAuthenticated);
-
   // Protected route loader function
   const protectedLoader = () => {
     const token = localStorage.getItem('token') || sessionStorage.getItem('token');
@@ -59,7 +57,8 @@ function App() {
     return null;
   };
 
-  const router = createBrowserRouter([
+  // Create router once - stable reference
+  const router = React.useMemo(() => createBrowserRouter([
     {
       path: '/',
       element: <RootLayout />,
@@ -67,89 +66,89 @@ function App() {
       children: [
         {
           path: '/',
-          element: isAuthenticated ? <Navigate to="/dashboard" /> : <Navigate to='/login'/>,
+          element: <Navigate to='/login' replace />,
         },
         {
           path: 'login',
-          element: isAuthenticated ? <Navigate to="/dashboard" /> : <Login />
+          element: <Login />
         },
         {
           path: 'register',
-          element: isAuthenticated ? <Navigate to="/dashboard" /> : <Register />
+          element: <Register />
         },
         {
           path: 'dashboard',
-          element: isAuthenticated ? <Dashboard /> : <Navigate to="/login" />,
+          element: <Dashboard />,
           loader: protectedLoader
         },
         {
           path: 'profile',
-          element: isAuthenticated ? <Profile /> : <Navigate to="/login" />,
+          element: <Profile />,
           loader: protectedLoader
         },
         {
           path: 'quiz',
-          element: isAuthenticated ? <QuizGenerator /> : <Navigate to="/login" />,
+          element: <QuizGenerator />,
           loader: protectedLoader
         },
         {
           path: 'simulations',
-          element: isAuthenticated ? <Simulations /> : <Navigate to="/login" />,
+          element: <Simulations />,
           loader: protectedLoader
         },
         {
           path: 'simulation/:slug',
-          element: isAuthenticated ? <SimulationView /> : <Navigate to="/login" />,
+          element: <SimulationView />,
           loader: protectedLoader
         },
         {
           path: 'learn-animations',
-          element: isAuthenticated ? <LearnViaAnimations /> : <Navigate to="/login" />,
+          element: <LearnViaAnimations />,
           loader: protectedLoader
         },
         {
           path: 'community',
-          element: isAuthenticated ? <Community /> : <Navigate to="/login" />,
+          element: <Community />,
           loader: protectedLoader
         },
         {
           path: 'daily-question',
-          element: isAuthenticated ? <DailyQuestion /> : <Navigate to="/login" />,
+          element: <DailyQuestion />,
           loader: protectedLoader
         },
         {
           path: 'notes',
-          element: isAuthenticated ? <Notes /> : <Navigate to="/login" />,
+          element: <Notes />,
           loader: protectedLoader
         },
         {
           path: 'note/:slug',
-          element: isAuthenticated ? <NoteView /> : <Navigate to="/login" />,
+          element: <NoteView />,
           loader: protectedLoader
         },
         {
           path: 'badges',
-          element: isAuthenticated ? <BadgesGrid /> : <Navigate to="/login" />,
+          element: <BadgesGrid />,
           loader: protectedLoader
         },
         {
           path: 'interactive-learning',
-          element: isAuthenticated ? <InteractiveLearning /> : <Navigate to="/login" />,
+          element: <InteractiveLearning />,
           loader: protectedLoader
         },
         {
           path: 'leaderboard',
-          element: isAuthenticated ? <LeaderboardPage /> : <Navigate to="/login" />,
+          element: <LeaderboardPage />,
           loader: protectedLoader
         },
         {
           path: 'resources',
-          element: isAuthenticated ? <Resources /> : <Navigate to="/login" />,
+          element: <Resources />,
           loader: protectedLoader
         }
       ]
     }
-  ]);
+  ]), []);
 
   return (
     <AuthProvider>
